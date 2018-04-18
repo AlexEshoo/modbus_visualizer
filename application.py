@@ -12,7 +12,9 @@ class VisualizerApp(Ui_MainWindow):
         self.init_poll_table()
         self.update_poll_table_column_headers()
 
-        self.client = ModbusTcpClient("127.0.0.1", 5020)
+        self.configure_modbus_client()
+
+        self.connected = False
 
     def connect_slots(self):
         self.singlePollPushButton.clicked.connect(self.single_poll)
@@ -59,30 +61,56 @@ class VisualizerApp(Ui_MainWindow):
             if (i + 1) % num_rows == 0:
                 cur_col += 1
 
+    def configure_modbus_client(self):
+        tcp_mode = self.tcpRadioButton.isChecked()
+        rtu_mode = self.rtuRadioButton.isChecked()
+
+        if rtu_mode:
+            pass
+        elif tcp_mode:
+            host = self.tcpHostLineEdit.text()
+            port = self.tcpPortLineEdit.text()
+            self.client = ModbusTcpClient(host, port)
+
+
+        self.connected = self.client.connect()
+
+        if not self.connected:
+            self.write_console("Could not connect.")
+
+        else:
+            self.write_console("Connection Successful.")
+
     def single_poll(self):
         data = self.poll_modbus_data()
         self.write_poll_table(data)
 
-        self.write_console("Poll Successful")
+        if data:
+            self.write_console("Poll Successful")
 
     def poll_modbus_data(self):
+        self.configure_modbus_client()
+
+        if not self.connected:
+            return []
+
         start = self.startRegisterSpinBox.value()
         length = self.numberOfRegistersSpinBox.value()
-        type = self.registerTypeComboBox.currentText()
+        register_type = self.registerTypeComboBox.currentText()
 
-        if type == "Coils":
+        if register_type == "Coils":
             rr = self.client.read_coils(start, length)
             data = rr.bits[:length]
 
-        elif type == "Discrete Inputs":
+        elif register_type == "Discrete Inputs":
             rr = self.client.read_discrete_inputs(start, length)
             data = rr.bits[:length]
 
-        elif type == "Input Registers":
+        elif register_type == "Input Registers":
             rr = self.client.read_input_registers(start, length)
             data = rr.registers
 
-        elif type == "Holding Registers":
+        elif register_type == "Holding Registers":
             rr = self.client.read_holding_registers(start, length)
             data = rr.registers
 
