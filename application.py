@@ -88,6 +88,7 @@ class VisualizerApp(Ui_MainWindow):
 
         else:
             self.write_console("Unknown Register Type.")
+            data = []
 
         return data
 
