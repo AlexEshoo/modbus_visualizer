@@ -30,6 +30,8 @@ class VisualizerApp(Ui_MainWindow):
                 self.pollTable.setItem(i, j, QTableWidgetItem(""))
 
     def update_poll_table_column_headers(self):
+        self.clear_poll_table() # Avoids confusion
+
         start = self.startRegisterSpinBox.value()
         num_cols = self.pollTable.columnCount()
         num_rows = self.pollTable.rowCount()
@@ -61,13 +63,36 @@ class VisualizerApp(Ui_MainWindow):
         data = self.poll_modbus_data()
         self.write_poll_table(data)
 
+        self.write_console("Poll Successful")
+
     def poll_modbus_data(self):
         start = self.startRegisterSpinBox.value()
         length = self.numberOfRegistersSpinBox.value()
+        type = self.registerTypeComboBox.currentText()
 
-        rr = self.client.read_holding_registers(start, length)
+        if type == "Coils":
+            rr = self.client.read_coils(start, length)
+            data = rr.bits[:length]
 
-        return rr.registers
+        elif type == "Discrete Inputs":
+            rr = self.client.read_discrete_inputs(start, length)
+            data = rr.bits[:length]
+
+        elif type == "Input Registers":
+            rr = self.client.read_input_registers(start, length)
+            data = rr.registers
+
+        elif type == "Holding Registers":
+            rr = self.client.read_holding_registers(start, length)
+            data = rr.registers
+
+        else:
+            self.write_console("Unknown Register Type.")
+
+        return data
+
+    def write_console(self, msg):
+        self.consoleLineEdit.setText(msg)
 
     def exit(self):
         QApplication.quit()
