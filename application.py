@@ -18,23 +18,14 @@ class PollingThread(QThread):
         self.start_reg = start
         self.length = length
         self.register_type = register_type
-        print("Starting polling thread")
+
         self.start()
 
     def run(self):
-        print("running polling")
-        print(f"{self.register_type}, {self.start_reg}, {self.length}, {self.client}")
 
         if self.register_type == "Coils":
-            try:
-                print("reading coils")
-                rr = self.client.read_coils(self.start_reg, self.length)
-                print(rr)
-                data = rr.bits[:self.length]
-                print(data)
-            except Exception as e:
-                print(e)
-
+            rr = self.client.read_coils(self.start_reg, self.length)
+            data = rr.bits[:self.length]
 
         elif self.register_type == "Discrete Inputs":
             rr = self.client.read_discrete_inputs(self.start_reg, self.length)
@@ -51,8 +42,6 @@ class PollingThread(QThread):
         else:
             self.write_console("Unknown Register Type.")
             data = []
-
-        print(f"will emit: {data}")
 
         self.finished.emit(data)
 
@@ -105,9 +94,8 @@ class VisualizerApp(Ui_MainWindow):
             for i in range(num_rows):
                 self.pollTable.item(i, j).setText("")
 
-    #@pyqtSlot(list)  # Works without this. Not sure why this breaks it. Fails to Connect the method for some reason...
+    # @pyqtSlot(list)  # Works without this. Not sure why this breaks it. Fails to Connect the method for some reason...
     def write_poll_table(self, data):
-        print("made it here")
         self.clear_poll_table()
         num_rows = self.pollTable.rowCount()
 
@@ -129,7 +117,7 @@ class VisualizerApp(Ui_MainWindow):
             port = self.tcpPortLineEdit.text()
             self.client = ModbusTcpClient(host, port)
 
-        self.connected = self.client.connect()
+        self.connected = self.client.connect()  # TODO: This can block for up to the timeout of the modbus client.
 
         if not self.connected:
             self.write_console("Could not connect.")
@@ -138,7 +126,6 @@ class VisualizerApp(Ui_MainWindow):
             self.write_console("Connection Successful.")
 
     def single_poll(self):
-        # data = self.poll_modbus_data()
         self.configure_modbus_client()
         data = []
         if self.connected:
@@ -146,10 +133,8 @@ class VisualizerApp(Ui_MainWindow):
             length = self.numberOfRegistersSpinBox.value()
             register_type = self.registerTypeComboBox.currentText()
             self.poll_thread = PollingThread(self.client, start, length, register_type)
-            try:
-                result = self.poll_thread.finished.connect(self.write_poll_table)  # Causing issues.
-            except Exception as e:
-                print(e)
+
+            self.poll_thread.finished.connect(self.write_poll_table)
 
 
         if data:
@@ -187,7 +172,6 @@ class VisualizerApp(Ui_MainWindow):
 
         return data
 
-    #@threaded
     def write_console(self, msg, *args, **kwargs):
         self.consoleLineEdit.setText("")
         time.sleep(0.05)
