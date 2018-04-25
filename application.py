@@ -5,12 +5,13 @@ from modbus_visualizer_gui import Ui_MainWindow
 from PyQt5.QtWidgets import QApplication, QMainWindow, QTableWidgetItem
 from PyQt5.QtCore import QObject, QThread, pyqtSignal, pyqtSlot
 
+_REGISTER_TYPE_TO_READ_FUNCTION_CODE = {"Coils": 0x01,
+                                        "Discrete Inputs": 0x02,
+                                        "Input Registers": 0x04,
+                                        "Holding Registers": 0x03}
+
 
 class ModbusWorker(QObject):
-    """
-    Possibe for use with movetoThread.
-    """
-
     data_available = pyqtSignal(list)
     new_connection_available = pyqtSignal()
     console_message_available = pyqtSignal(str)
@@ -38,39 +39,58 @@ class ModbusWorker(QObject):
             self.console_message_available.emit("Unknown Network Type")
 
         connected = self.client.connect()
+
         if connected:
-            self.new_connection_available.emit()
             self.console_message_available.emit("Connection Successful")
         else:
             self.console_message_available.emit("Connection Failed")
 
         self.busy = False
 
-    @pyqtSlot(int, int, str)
-    def poll(self, start_reg, length, register_type):
-        data = self.get_modbus_data(start_reg, length, register_type)
-        self.data_available.emit(data)
+    @pyqtSlot(int, int, int, dict)
+    def act_on_poll_request(self, function_code, start_register, length, options):
+        while self.busy:
+            pass  # Wait for client to be configured if it is in the process.
 
-    def get_modbus_data(self, start_reg, length, register_type):
-        if register_type == "Coils":
-            rr = self.client.read_coils(start_reg, length)
-            data = rr.bits[:length]
+        poll_interval = options.get("interval", 0)
+        poll_duration = options.get("duration", 0)
+        # poll_sample_count = options.get("sample_count", None)  # TODO: Implement something like this.
 
-        elif register_type == "Discrete Inputs":
-            rr = self.client.read_discrete_inputs(start_reg, length)
-            data = rr.bits[:length]
+        timer = time.time()
 
-        elif register_type == "Input Registers":
-            rr = self.client.read_input_registers(start_reg, length)
+        while time.time() - timer <= poll_duration:
+            start = time.time()
+
+            data = self.get_modbus_data(function_code, start_register, length)
+            self.data_available.emit(data)
+
+            elapsed = time.time() - start
+            try:
+                time.sleep(poll_interval - elapsed)
+            except ValueError:
+                time.sleep(poll_interval)
+
+    def get_modbus_data(self, function_code, start_reg, length):
+        # TODO: Handle Modbus error codes properly.
+        modbus_functions = {0x01: self.client.read_coils,
+                            0x02: self.client.read_discrete_inputs,
+                            0x04: self.client.read_input_registers,
+                            0x03: self.client.read_holding_registers}
+
+        try:
+            rr = modbus_functions[function_code](start_reg, length)
+
+        except KeyError:
+            self.console_message_available.emit(f"Function code not supported: {function_code}")
+            return []
+        except Exception as e:  # Todo: Make this a real exception
+            print(e)
+            return []
+
+        try:
             data = rr.registers
-
-        elif register_type == "Holding Registers":
-            rr = self.client.read_holding_registers(start_reg, length)
-            data = rr.registers
-
-        else:
-            self.console_message_available.emit("Register Type Unknown")
-            data = []
+        except AttributeError:
+            data = rr.bits[:length]
 
         return data
 
@@ -79,6 +99,7 @@ class VisualizerApp(Ui_MainWindow, QObject):
 
     modbus_settings_changed = pyqtSignal(dict)
     polling_settings_available = pyqtSignal(int, int, str)
+    poll_request = pyqtSignal(int, int, int, dict)
 
     def __init__(self, main_window):
         super().__init__()
@@ -101,9 +122,8 @@ class VisualizerApp(Ui_MainWindow, QObject):
 
         self.modbus_settings_changed.connect(self.worker.configure_client)
         self.worker.console_message_available.connect(self.write_console)
-        self.worker.new_connection_available.connect(self.poll_modbus_data)
-        self.polling_settings_available.connect(self.worker.poll)
         self.worker.data_available.connect(self.write_poll_table)
+        self.poll_request.connect(self.worker.act_on_poll_request)
 
     def init_poll_table(self):
         """
@@ -134,7 +154,7 @@ class VisualizerApp(Ui_MainWindow, QObject):
             for i in range(num_rows):
                 self.pollTable.item(i, j).setText("")
 
-    @pyqtSlot(list)  # Works without this. Not sure why this breaks it. Fails to Connect the method for some reason...
+    @pyqtSlot(list)
     def write_poll_table(self, data):
         self.clear_poll_table()
         num_rows = self.pollTable.rowCount()
@@ -164,19 +184,16 @@ class VisualizerApp(Ui_MainWindow, QObject):
             self.write_console("Busy...")
 
     def single_poll(self):
-        self.configure_modbus_client()
-        # Not an ideal control sequence.
-        # This starts a sequence of events that are emitted to call subsequent functions.
-        # This can be structured better. Or at least named better.
+        self.configure_modbus_client()  # Will initiate client update on threaded worker.
+        # Todo: Make the configure_modbus_client method fire on client settings change event.
 
-    @pyqtSlot()
-    def poll_modbus_data(self):
+        function_code = _REGISTER_TYPE_TO_READ_FUNCTION_CODE[self.registerTypeComboBox.currentText()]
+        options = {}
 
-        start = self.startRegisterSpinBox.value()
-        length = self.numberOfRegistersSpinBox.value()
-        register_type = self.registerTypeComboBox.currentText()
-
-        self.polling_settings_available.emit(start, length, register_type)
+        self.poll_request.emit(function_code,
+                               self.startRegisterSpinBox.value(),
+                               self.numberOfRegistersSpinBox.value(),
+                               options)
 
     @pyqtSlot(str)
     def write_console(self, msg, *args, **kwargs):
