@@ -159,3 +159,5 @@ ENV/
 # mypy
 .mypy_cache/
 
+
+test\.py
