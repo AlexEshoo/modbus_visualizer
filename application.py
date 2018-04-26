@@ -1,9 +1,10 @@
 import sys
 import time
+from queue import Queue
 from pymodbus.client.sync import ModbusTcpClient
 from modbus_visualizer_gui import Ui_MainWindow
-from PyQt5.QtWidgets import QApplication, QMainWindow, QTableWidgetItem
-from PyQt5.QtCore import QObject, QThread, pyqtSignal, pyqtSlot
+from PyQt5.QtWidgets import QApplication, QMainWindow, QTableWidgetItem, QLineEdit
+from PyQt5.QtCore import QObject, QThread, pyqtSignal, pyqtSlot, Qt
 
 _REGISTER_TYPE_TO_READ_FUNCTION_CODE = {"Coils": 0x01,
                                         "Discrete Inputs": 0x02,
@@ -11,10 +12,24 @@ _REGISTER_TYPE_TO_READ_FUNCTION_CODE = {"Coils": 0x01,
                                         "Holding Registers": 0x03}
 
 
+def busy_work_reject(func):
+    def wrapper(self, *args, **kwargs):
+        if self.busy:
+            return
+        else:
+            self.busy = True
+            func(self, *args, **kwargs)
+            self.busy = False
+
+    return wrapper
+
+
 class ModbusWorker(QObject):
     data_available = pyqtSignal(list)
     new_connection_available = pyqtSignal()
     console_message_available = pyqtSignal(str)
+    polling_started = pyqtSignal()
+    polling_finished = pyqtSignal()
 
     def __init__(self):
         super().__init__()
@@ -22,12 +37,15 @@ class ModbusWorker(QObject):
         self.client = None
         self.busy = False  # todo: maybe a decorator for this would be nice?
 
+
+
     def isBusy(self):
         return self.busy
 
     @pyqtSlot(dict)
+    @busy_work_reject
     def configure_client(self, settings):
-        self.busy = True
+        #self.busy = True
         if settings["network_type"] is "tcp":
             host = settings["host"]
             port = settings["port"]
@@ -45,12 +63,16 @@ class ModbusWorker(QObject):
         else:
             self.console_message_available.emit("Connection Failed")
 
-        self.busy = False
+        #self.busy = False
 
     @pyqtSlot(int, int, int, dict)
     def act_on_poll_request(self, function_code, start_register, length, options):
+        self.polling_started.emit()
+
         while self.busy:
-            pass  # Wait for client to be configured if it is in the process.
+            pass  # Wait for client to be configured if necessary
+
+        self.busy = True
 
         poll_interval = options.get("interval", 0)
         poll_duration = options.get("duration", 0)
@@ -69,6 +91,9 @@ class ModbusWorker(QObject):
                 time.sleep(poll_interval - elapsed)
             except ValueError:
                 time.sleep(poll_interval)
+
+        self.polling_finished.emit()
+        self.busy = False
 
     def get_modbus_data(self, function_code, start_reg, length):
         # TODO: Handle Modbus error codes properly.
@@ -116,14 +141,27 @@ class VisualizerApp(Ui_MainWindow, QObject):
 
         self.configure_modbus_client()
 
+        self.new_network_settings_flag = False
+
     def connect_slots(self):
         self.singlePollPushButton.clicked.connect(self.single_poll)
         self.startRegisterSpinBox.valueChanged.connect(self.update_poll_table_column_headers)
 
-        self.modbus_settings_changed.connect(self.worker.configure_client)
+        self.modbus_settings_changed.connect(self.worker.configure_client, Qt.QueuedConnection)
         self.worker.console_message_available.connect(self.write_console)
         self.worker.data_available.connect(self.write_poll_table)
-        self.poll_request.connect(self.worker.act_on_poll_request)
+        self.poll_request.connect(self.worker.act_on_poll_request, Qt.QueuedConnection)
+        self.worker.polling_started.connect(lambda: self.singlePollPushButton.setDisabled(True), Qt.QueuedConnection)
+        self.worker.polling_started.connect(lambda: self.startPollingPushButton.setDisabled(True), Qt.QueuedConnection)
+        self.worker.polling_finished.connect(lambda: self.singlePollPushButton.setEnabled(True), Qt.QueuedConnection)
+        self.worker.polling_finished.connect(lambda: self.startPollingPushButton.setEnabled(True), Qt.QueuedConnection)
+
+        for line_edit in self.networkSettingsGroupBox.findChildren(QLineEdit):
+            line_edit.textChanged.connect(self.set_new_network_settings_flag)
+
+    @pyqtSlot()
+    def set_new_network_settings_flag(self):
+        self.new_network_settings_flag = True
 
     def init_poll_table(self):
         """
@@ -166,7 +204,9 @@ class VisualizerApp(Ui_MainWindow, QObject):
             if (i + 1) % num_rows == 0:
                 cur_col += 1
 
+    @pyqtSlot()
     def configure_modbus_client(self):
+        print("this")
         if not self.worker.isBusy():
             tcp_mode = self.tcpRadioButton.isChecked()
             rtu_mode = self.rtuRadioButton.isChecked()
@@ -184,8 +224,9 @@ class VisualizerApp(Ui_MainWindow, QObject):
             self.write_console("Busy...")
 
     def single_poll(self):
-        self.configure_modbus_client()  # Will initiate client update on threaded worker.
-        # Todo: Make the configure_modbus_client method fire on client settings change event.
+        if self.new_network_settings_flag:
+            self.new_network_settings_flag = False
+            self.configure_modbus_client()  # Will initiate client update on threaded worker. BLOCKS!
 
         function_code = _REGISTER_TYPE_TO_READ_FUNCTION_CODE[self.registerTypeComboBox.currentText()]
         options = {}
