@@ -1,6 +1,6 @@
 import sys
 import time
-from queue import Queue
+from queue import Queue, Empty
 from pymodbus.client.sync import ModbusTcpClient
 from modbus_visualizer_gui import Ui_MainWindow
 from PyQt5.QtWidgets import QApplication, QMainWindow, QTableWidgetItem, QLineEdit
@@ -35,10 +35,10 @@ class ModbusWorker(QObject):
         super().__init__()
 
         self.client = None
-        self.busy = False  # todo: maybe a decorator for this would be nice?
+        self.busy = False
 
-
-
+        self.poll_requests = Queue(maxsize=1)  # Make a queue for incoming poll requests. Should be limited to one
+                                          # request at a time.
     def isBusy(self):
         return self.busy
 
@@ -65,22 +65,32 @@ class ModbusWorker(QObject):
 
         #self.busy = False
 
-    @pyqtSlot(int, int, int, dict)
-    def act_on_poll_request(self, function_code, start_register, length, options):
+    @pyqtSlot()
+    def act_on_poll_request(self):
         self.polling_started.emit()
+
+        try:
+            req = self.poll_requests.get(timeout=1)
+        except Empty:
+            print("No request was found. This should never happen.")
 
         while self.busy:
             pass  # Wait for client to be configured if necessary
 
-        self.busy = True
-
-        poll_interval = options.get("interval", 0)
-        poll_duration = options.get("duration", 0)
-        # poll_sample_count = options.get("sample_count", None)  # TODO: Implement something like this.
+        try:
+            function_code = req.get("function_code")
+            start_register = req.get("start_register")
+            length = req.get("length")
+            poll_interval = req.get("interval", 0)
+            poll_duration = req.get("duration", 0)
+            # poll_sample_count = options.get("sample_count", None)  # TODO: Implement something like this.
+        except KeyError:
+            self.console_message_available.emit(f"Request badly formatted: {req}")
+            self.polling_finished.emit()
+            return
 
         timer = time.time()
-
-        while time.time() - timer <= poll_duration:
+        while time.time() - timer <= poll_duration:  # TODO: This needs some review... Could have timing issues.
             start = time.time()
 
             data = self.get_modbus_data(function_code, start_register, length)
@@ -93,7 +103,6 @@ class ModbusWorker(QObject):
                 time.sleep(poll_interval)
 
         self.polling_finished.emit()
-        self.busy = False
 
     def get_modbus_data(self, function_code, start_reg, length):
         # TODO: Handle Modbus error codes properly.
@@ -124,7 +133,7 @@ class VisualizerApp(Ui_MainWindow, QObject):
 
     modbus_settings_changed = pyqtSignal(dict)
     polling_settings_available = pyqtSignal(int, int, str)
-    poll_request = pyqtSignal(int, int, int, dict)
+    poll_request = pyqtSignal()
 
     def __init__(self, main_window):
         super().__init__()
@@ -144,6 +153,9 @@ class VisualizerApp(Ui_MainWindow, QObject):
         self.new_network_settings_flag = False
 
     def connect_slots(self):
+        # Connect all signals/slots
+        # Note: Don't seem to need Qt.QueuedConnection for threaded events, but I put it there for show of good faith.
+
         self.singlePollPushButton.clicked.connect(self.single_poll)
         self.startRegisterSpinBox.valueChanged.connect(self.update_poll_table_column_headers)
 
@@ -224,6 +236,10 @@ class VisualizerApp(Ui_MainWindow, QObject):
             self.write_console("Busy...")
 
     def single_poll(self):
+        if self.worker.poll_requests.full():
+            self.write_console("Queue is full")
+            return
+
         if self.new_network_settings_flag:
             self.new_network_settings_flag = False
             self.configure_modbus_client()  # Will initiate client update on threaded worker. BLOCKS!
@@ -231,10 +247,14 @@ class VisualizerApp(Ui_MainWindow, QObject):
         function_code = _REGISTER_TYPE_TO_READ_FUNCTION_CODE[self.registerTypeComboBox.currentText()]
         options = {}
 
-        self.poll_request.emit(function_code,
-                               self.startRegisterSpinBox.value(),
-                               self.numberOfRegistersSpinBox.value(),
-                               options)
+        request = {
+            "function_code": function_code,
+            "start_register": self.startRegisterSpinBox.value(),
+            "length": self.numberOfRegistersSpinBox.value()
+        }
+
+        self.worker.poll_requests.put(request)
+        self.poll_request.emit()
 
     @pyqtSlot(str)
     def write_console(self, msg, *args, **kwargs):
