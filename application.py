@@ -159,7 +159,7 @@ class VisualizerApp(Ui_MainWindow, QObject):
         self.startRegisterSpinBox.valueChanged.connect(self.update_poll_table_column_headers)
 
         self.modbus_settings_changed.connect(self.worker.configure_client, Qt.QueuedConnection)
-        self.worker.console_message_available.connect(self.write_console)
+        self.worker.console_message_available.connect(self.write_console, Qt.QueuedConnection)
         self.worker.data_available.connect(self.write_poll_table)
         self.poll_request.connect(self.worker.act_on_poll_request, Qt.QueuedConnection)
         self.worker.polling_started.connect(lambda: self.singlePollPushButton.setDisabled(True), Qt.QueuedConnection)
