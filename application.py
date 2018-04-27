@@ -39,6 +39,8 @@ class ModbusWorker(QObject):
 
         self.poll_requests = Queue(maxsize=1)  # Make a queue for incoming poll requests. Should be limited to one
                                                # request at a time.
+        self.stop_polling = False
+
     def isBusy(self):
         return self.busy
 
@@ -89,7 +91,10 @@ class ModbusWorker(QObject):
             return
 
         timer = time.time()
-        while time.time() - timer <= poll_duration:  # TODO: This needs some review... Could have timing issues.
+        # TODO: This needs some review... Could have timing issues.
+        # TODO: If the stop_polling attribute is set and the interval is long, the program will hang until next iter.
+        # TODO: An interrupt of some kind should be used instead of this.
+        while time.time() - timer <= poll_duration and not self.stop_polling:
             start = time.time()
 
             data = self.get_modbus_data(function_code, start_register, length)
@@ -102,6 +107,7 @@ class ModbusWorker(QObject):
                 time.sleep(poll_interval)
 
         self.polling_finished.emit()
+        self.stop_polling = False
 
     def get_modbus_data(self, function_code, start_reg, length):
         # TODO: Handle Modbus error codes properly.
@@ -156,6 +162,8 @@ class VisualizerApp(Ui_MainWindow, QObject):
         # Note: Don't seem to need Qt.QueuedConnection for threaded events, but I put it there for show of good faith.
 
         self.singlePollPushButton.clicked.connect(self.single_poll)
+        self.startPollingPushButton.clicked.connect(self.continuous_poll_begin)
+        self.stopPollingPushButton.clicked.connect(self.stop_polling)
         self.startRegisterSpinBox.valueChanged.connect(self.update_poll_table_column_headers)
 
         self.modbus_settings_changed.connect(self.worker.configure_client, Qt.QueuedConnection)
@@ -164,8 +172,10 @@ class VisualizerApp(Ui_MainWindow, QObject):
         self.poll_request.connect(self.worker.act_on_poll_request, Qt.QueuedConnection)
         self.worker.polling_started.connect(lambda: self.singlePollPushButton.setDisabled(True), Qt.QueuedConnection)
         self.worker.polling_started.connect(lambda: self.startPollingPushButton.setDisabled(True), Qt.QueuedConnection)
+        self.worker.polling_started.connect(lambda: self.stopPollingPushButton.setEnabled(True), Qt.QueuedConnection)
         self.worker.polling_finished.connect(lambda: self.singlePollPushButton.setEnabled(True), Qt.QueuedConnection)
         self.worker.polling_finished.connect(lambda: self.startPollingPushButton.setEnabled(True), Qt.QueuedConnection)
+        self.worker.polling_finished.connect(lambda: self.stopPollingPushButton.setDisabled(True), Qt.QueuedConnection)
 
         for line_edit in self.networkSettingsGroupBox.findChildren(QLineEdit):
             line_edit.textChanged.connect(self.set_new_network_settings_flag)
@@ -254,6 +264,34 @@ class VisualizerApp(Ui_MainWindow, QObject):
 
         self.worker.poll_requests.put(request)
         self.poll_request.emit()
+
+    def continuous_poll_begin(self):
+        if self.worker.poll_requests.full():
+            self.write_console("Queue is full")
+            return
+
+        if self.new_network_settings_flag:
+            self.configure_modbus_client()  # Will initiate client update on threaded worker. BLOCKS!
+
+        function_code = _REGISTER_TYPE_TO_READ_FUNCTION_CODE[self.registerTypeComboBox.currentText()]
+
+        request = {
+            "function_code": function_code,
+            "start_register": self.startRegisterSpinBox.value(),
+            "length": self.numberOfRegistersSpinBox.value(),
+            "duration": 9999999999999,  # TODO: Make this a real parameter.
+            "interval": self.updateTimeSpinBox.value()
+        }
+
+        self.worker.poll_requests.put(request)
+        self.poll_request.emit()
+
+    def stop_polling(self):
+        try:
+            self.worker.stop_polling = True
+        except Exception as e:
+            print(e)
+
 
     @pyqtSlot(str)
     def write_console(self, msg, *args, **kwargs):
