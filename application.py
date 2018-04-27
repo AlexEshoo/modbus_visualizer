@@ -91,6 +91,7 @@ class ModbusWorker(QObject):
             return
 
         timer = time.time()
+        iter = 1
         # TODO: This needs some review... Could have timing issues.
         # TODO: If the stop_polling attribute is set and the interval is long, the program will hang until next iter.
         # TODO: An interrupt of some kind should be used instead of this.
@@ -106,8 +107,12 @@ class ModbusWorker(QObject):
             except ValueError:
                 time.sleep(poll_interval)
 
+            self.console_message_available.emit(f"Poll {iter} complete.")
+            iter += 1
+
         self.polling_finished.emit()
         self.stop_polling = False
+        self.console_message_available.emit("Polling Stopped.")
 
     def get_modbus_data(self, function_code, start_reg, length):
         # TODO: Handle Modbus error codes properly.
@@ -287,10 +292,9 @@ class VisualizerApp(Ui_MainWindow, QObject):
         self.poll_request.emit()
 
     def stop_polling(self):
-        try:
-            self.worker.stop_polling = True
-        except Exception as e:
-            print(e)
+        self.worker.stop_polling = True
+        self.write_console("Stopping...")
+
 
 
     @pyqtSlot(str)
