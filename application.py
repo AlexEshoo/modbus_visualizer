@@ -38,14 +38,13 @@ class ModbusWorker(QObject):
         self.busy = False
 
         self.poll_requests = Queue(maxsize=1)  # Make a queue for incoming poll requests. Should be limited to one
-                                          # request at a time.
+                                               # request at a time.
     def isBusy(self):
         return self.busy
 
     @pyqtSlot(dict)
     @busy_work_reject
     def configure_client(self, settings):
-        #self.busy = True
         if settings["network_type"] is "tcp":
             host = settings["host"]
             port = settings["port"]
@@ -63,16 +62,16 @@ class ModbusWorker(QObject):
         else:
             self.console_message_available.emit("Connection Failed")
 
-        #self.busy = False
-
     @pyqtSlot()
     def act_on_poll_request(self):
         self.polling_started.emit()
 
         try:
-            req = self.poll_requests.get(timeout=1)
+            req = self.poll_requests.get(timeout=1)  # Get the request out of the queue.
         except Empty:
             print("No request was found. This should never happen.")
+            self.polling_finished.emit()
+            return
 
         while self.busy:
             pass  # Wait for client to be configured if necessary
@@ -218,7 +217,6 @@ class VisualizerApp(Ui_MainWindow, QObject):
 
     @pyqtSlot()
     def configure_modbus_client(self):
-        print("this")
         if not self.worker.isBusy():
             tcp_mode = self.tcpRadioButton.isChecked()
             rtu_mode = self.rtuRadioButton.isChecked()
@@ -232,6 +230,9 @@ class VisualizerApp(Ui_MainWindow, QObject):
                 settings["port"] = self.tcpPortLineEdit.text()
 
             self.modbus_settings_changed.emit(settings)
+            self.new_network_settings_flag = False  # only mark the network settings as applied when they are actually
+                                                    # updated. We know this is true since this method checks
+                                                    # worker.isBusy()
         else:
             self.write_console("Busy...")
 
@@ -241,11 +242,9 @@ class VisualizerApp(Ui_MainWindow, QObject):
             return
 
         if self.new_network_settings_flag:
-            self.new_network_settings_flag = False
             self.configure_modbus_client()  # Will initiate client update on threaded worker. BLOCKS!
 
         function_code = _REGISTER_TYPE_TO_READ_FUNCTION_CODE[self.registerTypeComboBox.currentText()]
-        options = {}
 
         request = {
             "function_code": function_code,
