@@ -58,45 +58,6 @@
           <string>Polling Settings</string>
          </property>
          <layout class="QGridLayout" name="gridLayout_4">
-          <item row="1" column="2">
-           <widget class="QSpinBox" name="startRegisterSpinBox">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="value">
-             <number>1</number>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="4">
-           <widget class="QLabel" name="numberOfRegistersLabel">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="text">
-             <string>Number of Registers</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="0">
-           <widget class="QLabel" name="registerTypeLabel">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="text">
-             <string>Register Type</string>
-            </property>
-           </widget>
-          </item>
           <item row="1" column="4">
            <widget class="QSpinBox" name="numberOfRegistersSpinBox">
             <property name="sizePolicy">
@@ -116,16 +77,26 @@
             </property>
            </widget>
           </item>
-          <item row="0" column="2">
-           <widget class="QLabel" name="startRegisterLabel">
+          <item row="2" column="0">
+           <widget class="QPushButton" name="singlePollPushButton">
+            <property name="text">
+             <string>Single Poll</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="6">
+           <widget class="QSpinBox" name="updateTimeSpinBox">
             <property name="sizePolicy">
-             <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+             <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
-            <property name="text">
-             <string>Start Register</string>
+            <property name="minimum">
+             <number>1</number>
+            </property>
+            <property name="maximum">
+             <number>999999</number>
             </property>
            </widget>
           </item>
@@ -159,6 +130,19 @@
             </item>
            </widget>
           </item>
+          <item row="0" column="2">
+           <widget class="QLabel" name="startRegisterLabel">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>Start Register</string>
+            </property>
+           </widget>
+          </item>
           <item row="0" column="6">
            <widget class="QLabel" name="updateTimeLabel">
             <property name="sizePolicy">
@@ -172,23 +156,16 @@
             </property>
            </widget>
           </item>
-          <item row="1" column="6">
-           <widget class="QSpinBox" name="updateTimeSpinBox">
+          <item row="1" column="2">
+           <widget class="QSpinBox" name="startRegisterSpinBox">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
-            <property name="maximum">
-             <number>999999</number>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="0">
-           <widget class="QPushButton" name="singlePollPushButton">
-            <property name="text">
-             <string>Single Poll</string>
+            <property name="value">
+             <number>1</number>
             </property>
            </widget>
           </item>
@@ -196,6 +173,42 @@
            <widget class="QPushButton" name="startPollingPushButton">
             <property name="text">
              <string>Start Polling</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="0">
+           <widget class="QLabel" name="registerTypeLabel">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>Register Type</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="4">
+           <widget class="QLabel" name="numberOfRegistersLabel">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>Number of Registers</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="4">
+           <widget class="QPushButton" name="stopPollingPushButton">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="text">
+             <string>Stop Polling</string>
             </property>
            </widget>
           </item>
