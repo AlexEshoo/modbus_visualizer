@@ -257,8 +257,8 @@ class VisualizerApp(Ui_MainWindow, QObject):
 
     @pyqtSlot(str)
     def write_console(self, msg, *args, **kwargs):
-        self.consoleLineEdit.setText("")
-        time.sleep(0.05)  # Seems to be doing nothing now...
+        # self.consoleLineEdit.setText("")
+        # time.sleep(0.05)  # Seems to be doing nothing now...
         self.consoleLineEdit.setText(msg)
 
     def exit(self):
