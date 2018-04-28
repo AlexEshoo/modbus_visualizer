@@ -1,6 +1,7 @@
-from modbus_visualizer_gui import Ui_MainWindow
-from PyQt5.QtWidgets import QApplication, QTableWidgetItem, QLineEdit, QWidget
 from PyQt5.QtCore import QObject, QThread, pyqtSignal, pyqtSlot, Qt
+from PyQt5.QtWidgets import QApplication, QTableWidgetItem, QLineEdit, QWidget
+
+from visualizer.gui_main_window import Ui_MainWindow
 from visualizer.modbus_worker import ModbusWorker
 
 _REGISTER_TYPE_TO_READ_FUNCTION_CODE = {"Coils": 0x01,
