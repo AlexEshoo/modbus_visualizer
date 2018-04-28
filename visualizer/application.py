@@ -106,7 +106,7 @@ class VisualizerApp(Ui_MainWindow, QObject):
 
     @pyqtSlot()
     def configure_modbus_client(self):
-        if not self.worker.isBusy():
+        if not self.worker.is_busy():
             tcp_mode = self.tcpRadioButton.isChecked()
             rtu_mode = self.rtuRadioButton.isChecked()
 
@@ -121,7 +121,7 @@ class VisualizerApp(Ui_MainWindow, QObject):
             self.modbus_settings_changed.emit(settings)
 
             # only mark the network settings as applied when they are actually
-            # updated. We know this is true since this method checks worker.isBusy()
+            # updated. We know this is true since this method checks worker.is_busy()
             self.new_network_settings_flag = False
 
         else:
@@ -171,13 +171,12 @@ class VisualizerApp(Ui_MainWindow, QObject):
         self.worker.stop_polling = True
         self.write_console("Stopping...")
 
-
-
     @pyqtSlot(str)
-    def write_console(self, msg, *args, **kwargs):
+    def write_console(self, msg):
         # self.consoleLineEdit.setText("")
         # time.sleep(0.05)  # Seems to be doing nothing now...
         self.consoleLineEdit.setText(msg)
 
-    def exit(self):
+    @staticmethod
+    def exit():
         QApplication.quit()

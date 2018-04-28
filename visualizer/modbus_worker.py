@@ -32,7 +32,7 @@ class ModbusWorker(QObject):
         self.poll_requests = Queue(maxsize=1)  # queue for incoming poll requests. limit to one poll at a time.
         self.stop_polling = False  # Flag signal to stop polling.
 
-    def isBusy(self):
+    def is_busy(self):
         return self.busy
 
     @pyqtSlot(dict)
