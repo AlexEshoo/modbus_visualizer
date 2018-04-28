@@ -91,24 +91,28 @@ class ModbusWorker(QObject):
             return
 
         timer = time.time()
-        iter = 1
-        # TODO: This needs some review... Could have timing issues.
-        # TODO: If the stop_polling attribute is set and the interval is long, the program will hang until next iter.
-        # TODO: An interrupt of some kind should be used instead of this.
+        successful = 1
+        retries = 0
+        # TODO: This needs some review... Could have timing issues if poll_duration == 0 (default case)
         while time.time() - timer <= poll_duration and not self.stop_polling:
             start = time.time()
 
             data = self.get_modbus_data(function_code, start_register, length)
             self.data_available.emit(data)
 
-            elapsed = time.time() - start
-            try:
-                time.sleep(poll_interval - elapsed)
-            except ValueError:
-                time.sleep(poll_interval)
+            if data:
+                retries = 0
+                self.console_message_available.emit(f"Poll {successful} complete.")
+                successful += 1
+            else:
+                successful = 0  # Reset successful counter?
+                self.console_message_available.emit(f"Connection Failed. Retrying... {retries}")
+                retries += 1
 
-            self.console_message_available.emit(f"Poll {iter} complete.")
-            iter += 1
+            while time.time() - start < poll_interval:  # Elapsed Time
+                if self.stop_polling: break
+                time.sleep(0.01)  # Do we need this much accuracy on poll interval? Does it hurt?
+
 
         self.polling_finished.emit()
         self.stop_polling = False
