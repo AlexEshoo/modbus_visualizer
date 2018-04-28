@@ -1,6 +1,7 @@
 # modbus_visualizer
 
 ## Future Features
+* Modbus RTU support (ascii too?)
 * Writing Registers
 * Logging to File
 * Modbus Error Response Handling
@@ -25,3 +26,5 @@ pyuic5 ./ui_files/modbus_visualizer.ui > ./visualizer/gui_main_window.py
 
 ### Running
 Run the program: `python main.py`
+
+For testing the server without a live modbus server or serial modbus device, run the testserver `python test_server.py`.
