@@ -1,146 +1,12 @@
-import sys
-import time
-from queue import Queue, Empty
-from pymodbus.client.sync import ModbusTcpClient
 from modbus_visualizer_gui import Ui_MainWindow
-from PyQt5.QtWidgets import QApplication, QMainWindow, QTableWidgetItem, QLineEdit, QPushButton, QWidget
+from PyQt5.QtWidgets import QApplication, QTableWidgetItem, QLineEdit, QWidget
 from PyQt5.QtCore import QObject, QThread, pyqtSignal, pyqtSlot, Qt
+from visualizer.modbus_worker import ModbusWorker
 
 _REGISTER_TYPE_TO_READ_FUNCTION_CODE = {"Coils": 0x01,
                                         "Discrete Inputs": 0x02,
                                         "Input Registers": 0x04,
                                         "Holding Registers": 0x03}
-
-
-def busy_work_reject(func):
-    def wrapper(self, *args, **kwargs):
-        if self.busy:
-            return
-        else:
-            self.busy = True
-            func(self, *args, **kwargs)
-            self.busy = False
-
-    return wrapper
-
-
-class ModbusWorker(QObject):
-    data_available = pyqtSignal(list)
-    new_connection_available = pyqtSignal()
-    console_message_available = pyqtSignal(str)
-    polling_started = pyqtSignal()
-    polling_finished = pyqtSignal()
-
-    def __init__(self):
-        super().__init__()
-
-        self.client = None
-        self.busy = False
-
-        self.poll_requests = Queue(maxsize=1)  # Make a queue for incoming poll requests. Should be limited to one
-                                               # request at a time.
-        self.stop_polling = False
-
-    def isBusy(self):
-        return self.busy
-
-    @pyqtSlot(dict)
-    @busy_work_reject
-    def configure_client(self, settings):
-        if settings["network_type"] is "tcp":
-            host = settings["host"]
-            port = settings["port"]
-            self.client = ModbusTcpClient(host, port)
-
-        elif settings["network_type"] is "rtu":
-            ...
-        else:
-            self.console_message_available.emit("Unknown Network Type")
-
-        connected = self.client.connect()
-
-        if connected:
-            self.console_message_available.emit("Connection Successful")
-        else:
-            self.console_message_available.emit("Connection Failed")
-
-    @pyqtSlot()
-    def act_on_poll_request(self):
-        self.polling_started.emit()
-
-        try:
-            req = self.poll_requests.get(timeout=1)  # Get the request out of the queue.
-        except Empty:
-            print("No request was found. This should never happen.")
-            self.polling_finished.emit()
-            return
-
-        while self.busy:
-            pass  # Wait for client to be configured if necessary
-
-        try:
-            function_code = req.get("function_code")
-            start_register = req.get("start_register")
-            length = req.get("length")
-            poll_interval = req.get("interval", 0)
-            poll_duration = req.get("duration", 0)
-            # poll_sample_count = options.get("sample_count", None)  # TODO: Implement something like this.
-        except KeyError:
-            self.console_message_available.emit(f"Request badly formatted: {req}")
-            self.polling_finished.emit()
-            return
-
-        timer = time.time()
-        successful = 1
-        retries = 0
-        # TODO: This needs some review... Could have timing issues if poll_duration == 0 (default case)
-        while time.time() - timer <= poll_duration and not self.stop_polling:
-            start = time.time()
-
-            data = self.get_modbus_data(function_code, start_register, length)
-            self.data_available.emit(data)
-
-            if data:
-                retries = 0
-                self.console_message_available.emit(f"Poll {successful} complete.")
-                successful += 1
-            else:
-                successful = 0  # Reset successful counter?
-                self.console_message_available.emit(f"Connection Failed. Retrying... {retries}")
-                retries += 1
-
-            while time.time() - start < poll_interval:  # Elapsed Time
-                if self.stop_polling: break
-                time.sleep(0.01)  # Do we need this much accuracy on poll interval? Does it hurt?
-
-
-        self.polling_finished.emit()
-        self.stop_polling = False
-        self.console_message_available.emit("Polling Stopped.")
-
-    def get_modbus_data(self, function_code, start_reg, length):
-        # TODO: Handle Modbus error codes properly.
-        modbus_functions = {0x01: self.client.read_coils,
-                            0x02: self.client.read_discrete_inputs,
-                            0x04: self.client.read_input_registers,
-                            0x03: self.client.read_holding_registers}
-
-        try:
-            rr = modbus_functions[function_code](start_reg, length)
-
-        except KeyError:
-            self.console_message_available.emit(f"Function code not supported: {function_code}")
-            return []
-        except Exception as e:  # Todo: Make this a real exception
-            print(e)
-            return []
-
-        try:
-            data = rr.registers
-        except AttributeError:
-            data = rr.bits[:length]
-
-        return data
 
 
 class VisualizerApp(Ui_MainWindow, QObject):
@@ -252,9 +118,11 @@ class VisualizerApp(Ui_MainWindow, QObject):
                 settings["port"] = self.tcpPortLineEdit.text()
 
             self.modbus_settings_changed.emit(settings)
-            self.new_network_settings_flag = False  # only mark the network settings as applied when they are actually
-                                                    # updated. We know this is true since this method checks
-                                                    # worker.isBusy()
+
+            # only mark the network settings as applied when they are actually
+            # updated. We know this is true since this method checks worker.isBusy()
+            self.new_network_settings_flag = False
+
         else:
             self.write_console("Busy...")
 
@@ -312,11 +180,3 @@ class VisualizerApp(Ui_MainWindow, QObject):
 
     def exit(self):
         QApplication.quit()
-
-
-if __name__ == '__main__':
-    app = QApplication(sys.argv)
-    main_window_obj = QMainWindow()
-    window = VisualizerApp(main_window_obj)
-    main_window_obj.show()
-    sys.exit(app.exec_())
