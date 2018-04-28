@@ -3,7 +3,7 @@ import time
 from queue import Queue, Empty
 from pymodbus.client.sync import ModbusTcpClient
 from modbus_visualizer_gui import Ui_MainWindow
-from PyQt5.QtWidgets import QApplication, QMainWindow, QTableWidgetItem, QLineEdit
+from PyQt5.QtWidgets import QApplication, QMainWindow, QTableWidgetItem, QLineEdit, QPushButton, QWidget
 from PyQt5.QtCore import QObject, QThread, pyqtSignal, pyqtSlot, Qt
 
 _REGISTER_TYPE_TO_READ_FUNCTION_CODE = {"Coils": 0x01,
@@ -175,12 +175,15 @@ class VisualizerApp(Ui_MainWindow, QObject):
         self.worker.console_message_available.connect(self.write_console, Qt.QueuedConnection)
         self.worker.data_available.connect(self.write_poll_table)
         self.poll_request.connect(self.worker.act_on_poll_request, Qt.QueuedConnection)
-        self.worker.polling_started.connect(lambda: self.singlePollPushButton.setDisabled(True), Qt.QueuedConnection)
-        self.worker.polling_started.connect(lambda: self.startPollingPushButton.setDisabled(True), Qt.QueuedConnection)
-        self.worker.polling_started.connect(lambda: self.stopPollingPushButton.setEnabled(True), Qt.QueuedConnection)
-        self.worker.polling_finished.connect(lambda: self.singlePollPushButton.setEnabled(True), Qt.QueuedConnection)
-        self.worker.polling_finished.connect(lambda: self.startPollingPushButton.setEnabled(True), Qt.QueuedConnection)
-        self.worker.polling_finished.connect(lambda: self.stopPollingPushButton.setDisabled(True), Qt.QueuedConnection)
+
+        # Disable buttons while polling, re-enable when polling complete
+        for widget in self.pollingSettingsGroupBox.findChildren(QWidget):
+            if widget.objectName() == "stopPollingPushButton":
+                self.worker.polling_started.connect(lambda w=widget: w.setEnabled(True), Qt.QueuedConnection)
+                self.worker.polling_finished.connect(lambda w=widget: w.setDisabled(True), Qt.QueuedConnection)
+            else:
+                self.worker.polling_finished.connect(lambda w=widget: w.setEnabled(True), Qt.QueuedConnection)
+                self.worker.polling_started.connect(lambda w=widget: w.setDisabled(True), Qt.QueuedConnection)
 
         for line_edit in self.networkSettingsGroupBox.findChildren(QLineEdit):
             line_edit.textChanged.connect(self.set_new_network_settings_flag)
