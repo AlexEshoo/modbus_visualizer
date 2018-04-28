@@ -3,7 +3,7 @@ import time
 from queue import Queue, Empty
 from pymodbus.client.sync import ModbusTcpClient
 from modbus_visualizer_gui import Ui_MainWindow
-from PyQt5.QtWidgets import QApplication, QMainWindow, QTableWidgetItem, QLineEdit
+from PyQt5.QtWidgets import QApplication, QMainWindow, QTableWidgetItem, QLineEdit, QPushButton, QWidget
 from PyQt5.QtCore import QObject, QThread, pyqtSignal, pyqtSlot, Qt
 
 _REGISTER_TYPE_TO_READ_FUNCTION_CODE = {"Coils": 0x01,
@@ -39,6 +39,8 @@ class ModbusWorker(QObject):
 
         self.poll_requests = Queue(maxsize=1)  # Make a queue for incoming poll requests. Should be limited to one
                                                # request at a time.
+        self.stop_polling = False
+
     def isBusy(self):
         return self.busy
 
@@ -89,19 +91,32 @@ class ModbusWorker(QObject):
             return
 
         timer = time.time()
-        while time.time() - timer <= poll_duration:  # TODO: This needs some review... Could have timing issues.
+        successful = 1
+        retries = 0
+        # TODO: This needs some review... Could have timing issues if poll_duration == 0 (default case)
+        while time.time() - timer <= poll_duration and not self.stop_polling:
             start = time.time()
 
             data = self.get_modbus_data(function_code, start_register, length)
             self.data_available.emit(data)
 
-            elapsed = time.time() - start
-            try:
-                time.sleep(poll_interval - elapsed)
-            except ValueError:
-                time.sleep(poll_interval)
+            if data:
+                retries = 0
+                self.console_message_available.emit(f"Poll {successful} complete.")
+                successful += 1
+            else:
+                successful = 0  # Reset successful counter?
+                self.console_message_available.emit(f"Connection Failed. Retrying... {retries}")
+                retries += 1
+
+            while time.time() - start < poll_interval:  # Elapsed Time
+                if self.stop_polling: break
+                time.sleep(0.01)  # Do we need this much accuracy on poll interval? Does it hurt?
+
 
         self.polling_finished.emit()
+        self.stop_polling = False
+        self.console_message_available.emit("Polling Stopped.")
 
     def get_modbus_data(self, function_code, start_reg, length):
         # TODO: Handle Modbus error codes properly.
@@ -156,16 +171,23 @@ class VisualizerApp(Ui_MainWindow, QObject):
         # Note: Don't seem to need Qt.QueuedConnection for threaded events, but I put it there for show of good faith.
 
         self.singlePollPushButton.clicked.connect(self.single_poll)
+        self.startPollingPushButton.clicked.connect(self.continuous_poll_begin)
+        self.stopPollingPushButton.clicked.connect(self.stop_polling)
         self.startRegisterSpinBox.valueChanged.connect(self.update_poll_table_column_headers)
 
         self.modbus_settings_changed.connect(self.worker.configure_client, Qt.QueuedConnection)
         self.worker.console_message_available.connect(self.write_console, Qt.QueuedConnection)
         self.worker.data_available.connect(self.write_poll_table)
         self.poll_request.connect(self.worker.act_on_poll_request, Qt.QueuedConnection)
-        self.worker.polling_started.connect(lambda: self.singlePollPushButton.setDisabled(True), Qt.QueuedConnection)
-        self.worker.polling_started.connect(lambda: self.startPollingPushButton.setDisabled(True), Qt.QueuedConnection)
-        self.worker.polling_finished.connect(lambda: self.singlePollPushButton.setEnabled(True), Qt.QueuedConnection)
-        self.worker.polling_finished.connect(lambda: self.startPollingPushButton.setEnabled(True), Qt.QueuedConnection)
+
+        # Disable buttons while polling, re-enable when polling complete
+        for widget in self.pollingSettingsGroupBox.findChildren(QWidget):
+            if widget.objectName() == "stopPollingPushButton":
+                self.worker.polling_started.connect(lambda w=widget: w.setEnabled(True), Qt.QueuedConnection)
+                self.worker.polling_finished.connect(lambda w=widget: w.setDisabled(True), Qt.QueuedConnection)
+            else:
+                self.worker.polling_finished.connect(lambda w=widget: w.setEnabled(True), Qt.QueuedConnection)
+                self.worker.polling_started.connect(lambda w=widget: w.setDisabled(True), Qt.QueuedConnection)
 
         for line_edit in self.networkSettingsGroupBox.findChildren(QLineEdit):
             line_edit.textChanged.connect(self.set_new_network_settings_flag)
@@ -254,6 +276,33 @@ class VisualizerApp(Ui_MainWindow, QObject):
 
         self.worker.poll_requests.put(request)
         self.poll_request.emit()
+
+    def continuous_poll_begin(self):
+        if self.worker.poll_requests.full():
+            self.write_console("Queue is full")
+            return
+
+        if self.new_network_settings_flag:
+            self.configure_modbus_client()  # Will initiate client update on threaded worker. BLOCKS!
+
+        function_code = _REGISTER_TYPE_TO_READ_FUNCTION_CODE[self.registerTypeComboBox.currentText()]
+
+        request = {
+            "function_code": function_code,
+            "start_register": self.startRegisterSpinBox.value(),
+            "length": self.numberOfRegistersSpinBox.value(),
+            "duration": 9999999999999,  # TODO: Make this a real parameter.
+            "interval": self.updateTimeSpinBox.value()
+        }
+
+        self.worker.poll_requests.put(request)
+        self.poll_request.emit()
+
+    def stop_polling(self):
+        self.worker.stop_polling = True
+        self.write_console("Stopping...")
+
+
 
     @pyqtSlot(str)
     def write_console(self, msg, *args, **kwargs):
