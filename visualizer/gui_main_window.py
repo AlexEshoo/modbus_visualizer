@@ -11,7 +11,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(1091, 676)
+        MainWindow.resize(1064, 671)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -104,6 +104,7 @@ class Ui_MainWindow(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.startRegisterSpinBox.sizePolicy().hasHeightForWidth())
         self.startRegisterSpinBox.setSizePolicy(sizePolicy)
+        self.startRegisterSpinBox.setMaximum(65535)
         self.startRegisterSpinBox.setProperty("value", 1)
         self.startRegisterSpinBox.setObjectName("startRegisterSpinBox")
         self.gridLayout_4.addWidget(self.startRegisterSpinBox, 1, 2, 1, 1)
@@ -244,7 +245,7 @@ class Ui_MainWindow(object):
         self.gridLayout.addWidget(self.mainFrame, 0, 0, 1, 1)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 1091, 21))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 1064, 21))
         self.menubar.setObjectName("menubar")
         self.menuFile = QtWidgets.QMenu(self.menubar)
         self.menuFile.setObjectName("menuFile")
