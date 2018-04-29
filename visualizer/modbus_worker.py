@@ -1,7 +1,9 @@
 import time
 from queue import Queue, Empty
 from pymodbus.client.sync import ModbusTcpClient
+from pymodbus.pdu import ExceptionResponse
 from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot
+from visualizer.constants import MODBUS_EXCEPTION_CODES
 
 
 def busy_work_reject(func):
@@ -97,10 +99,10 @@ class ModbusWorker(QObject):
                 successful += 1
             else:
                 successful = 0  # Reset successful counter?
-                self.console_message_available.emit(f"Connection Failed. Retrying... {retries}")
+                self.console_message_available.emit(f"Poll Failed. Retrying... {retries}")
                 retries += 1
 
-            while time.time() - start < poll_interval:  # Elapsed Time
+            while time.time() - start < poll_interval:  # Elapsed Time < Interval
                 if self.stop_polling:
                     break
 
@@ -123,13 +125,17 @@ class ModbusWorker(QObject):
         except KeyError:
             self.console_message_available.emit(f"Function code not supported: {function_code}")
             return []
-        except Exception as e:  # Todo: Make this a real exception
-            print(e)
+
+        if isinstance(rr, ExceptionResponse):
+            code = rr.exception_code
+            msg = MODBUS_EXCEPTION_CODES[code]
+            self.console_message_available.emit(f"Modbus Error Code {code}: {msg}")
             return []
 
-        try:
-            data = rr.registers
-        except AttributeError:
-            data = rr.bits[:length]
+        else:  # Response is ModbusResponse
+            try:
+                data = rr.registers  # For Input/Holding Register Responses
+            except AttributeError:
+                data = rr.bits[:length]  # For Coil/Discrete Input Responses
 
         return data

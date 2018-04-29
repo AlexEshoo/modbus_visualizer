@@ -3,11 +3,7 @@ from PyQt5.QtWidgets import QApplication, QTableWidgetItem, QLineEdit, QWidget
 
 from visualizer.gui_main_window import Ui_MainWindow
 from visualizer.modbus_worker import ModbusWorker
-
-_REGISTER_TYPE_TO_READ_FUNCTION_CODE = {"Coils": 0x01,
-                                        "Discrete Inputs": 0x02,
-                                        "Input Registers": 0x04,
-                                        "Holding Registers": 0x03}
+from visualizer.constants import REGISTER_TYPE_TO_READ_FUNCTION_CODE
 
 
 class VisualizerApp(Ui_MainWindow, QObject):
@@ -135,7 +131,7 @@ class VisualizerApp(Ui_MainWindow, QObject):
         if self.new_network_settings_flag:
             self.configure_modbus_client()  # Will initiate client update on threaded worker. BLOCKS!
 
-        function_code = _REGISTER_TYPE_TO_READ_FUNCTION_CODE[self.registerTypeComboBox.currentText()]
+        function_code = REGISTER_TYPE_TO_READ_FUNCTION_CODE[self.registerTypeComboBox.currentText()]
 
         request = {
             "function_code": function_code,
@@ -154,7 +150,7 @@ class VisualizerApp(Ui_MainWindow, QObject):
         if self.new_network_settings_flag:
             self.configure_modbus_client()  # Will initiate client update on threaded worker. BLOCKS!
 
-        function_code = _REGISTER_TYPE_TO_READ_FUNCTION_CODE[self.registerTypeComboBox.currentText()]
+        function_code = REGISTER_TYPE_TO_READ_FUNCTION_CODE[self.registerTypeComboBox.currentText()]
 
         request = {
             "function_code": function_code,
