@@ -2,6 +2,7 @@ import time
 from queue import Queue, Empty
 from pymodbus.client.sync import ModbusTcpClient
 from pymodbus.pdu import ExceptionResponse
+from pymodbus.exceptions import ConnectionException
 from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot
 from visualizer.constants import MODBUS_EXCEPTION_CODES
 
@@ -124,6 +125,9 @@ class ModbusWorker(QObject):
 
         except KeyError:
             self.console_message_available.emit(f"Function code not supported: {function_code}")
+            return []
+        except ConnectionException:
+            self.console_message_available.emit("Connection Failed.")
             return []
 
         if isinstance(rr, ExceptionResponse):
