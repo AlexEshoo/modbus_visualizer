@@ -438,12 +438,12 @@
             </property>
             <item>
              <property name="text">
-              <string>Unsigned Int</string>
+              <string>Unsigned Short</string>
              </property>
             </item>
             <item>
              <property name="text">
-              <string>Signed Int</string>
+              <string>Signed Short</string>
              </property>
             </item>
             <item>
