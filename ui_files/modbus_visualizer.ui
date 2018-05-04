@@ -502,15 +502,21 @@
             </property>
            </widget>
           </item>
-          <item row="0" column="2">
-           <widget class="QLabel" name="label">
+          <item row="0" column="2" alignment="Qt::AlignRight">
+           <widget class="QLabel" name="numberBaseLabel">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
             <property name="text">
              <string>Number Base</string>
             </property>
            </widget>
           </item>
           <item row="0" column="3">
-           <widget class="QComboBox" name="comboBox">
+           <widget class="QComboBox" name="numberBaseComboBox">
             <item>
              <property name="text">
               <string>Decimal</string>
