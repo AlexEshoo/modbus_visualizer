@@ -1,4 +1,5 @@
 import struct
+from math import log, floor
 
 def digit_to_char(digit):
     if digit < 10:
@@ -33,13 +34,13 @@ def format_data(data, dtype:str, byte_order=">", word_order=">", base=10):
     else:
         result = struct.unpack(">" + dtype*fmt_len, byte_str)
 
-    num_base_prefixes = {2: "0b",
-                         8: "0o",
-                         16: "0x"}
+    num_base_prefixes = {2: "0b", 8: "0o", 16: "0x"}
 
     prefix = num_base_prefixes.get(base, "")
     if prefix:
-        return [ prefix + str_base(i, base).rjust(size*8, '0') for i in result ]
+        # pad_len -> https://math.stackexchange.com/questions/593670/proving-number-of-digits-d-to-represent-integer-n-in-base-b
+        pad_len = int(floor( log(2**(size * 8) + 1, base) ))  # Putting the math degree to use.
+        return [ prefix + str_base(i, base).rjust(pad_len, '0') for i in result ]
     else:
         return [ str_base(i, base) for i in result ]
 
