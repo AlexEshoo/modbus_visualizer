@@ -3,7 +3,8 @@ from PyQt5.QtWidgets import QApplication, QTableWidgetItem, QLineEdit, QWidget
 
 from visualizer.gui_main_window import Ui_MainWindow
 from visualizer.modbus_worker import ModbusWorker
-from visualizer.constants import REGISTER_TYPE_TO_READ_FUNCTION_CODE
+from visualizer.constants import REGISTER_TYPE_TO_READ_FUNCTION_CODE, STRUCT_DATA_TYPE, ENDIANNESS, RADIX
+from visualizer.utils import format_data
 
 
 class VisualizerApp(Ui_MainWindow, QObject):
@@ -94,8 +95,18 @@ class VisualizerApp(Ui_MainWindow, QObject):
         num_rows = self.pollTable.rowCount()
 
         cur_col = 0
-        for i, datum in enumerate(data):
-            self.pollTable.item(i % 10, cur_col).setText(str(datum))
+        dtype = STRUCT_DATA_TYPE[self.dataTypeComboBox.currentText()]
+        byte_order = ENDIANNESS[self.byteEndianessComboBox.currentText()]
+        word_order = ENDIANNESS[self.wordEndianessComboBox.currentText()]
+        base = RADIX[self.numberBaseComboBox.currentText()]
+
+        if self.registerTypeComboBox.currentText() in ("Holding Registers", "Input Registers"):
+            formatted = format_data(data, dtype, byte_order=byte_order, word_order=word_order, base=base)
+        else:
+            formatted = [ str(i) for i in data ]  # make bools into strings.
+
+        for i, datum in enumerate(formatted):
+            self.pollTable.item(i % 10, cur_col).setText(datum)
             # self.pollTable.setItem(i % 10, cur_col, QTableWidgetItem(str(datum)))
             if (i + 1) % num_rows == 0:
                 cur_col += 1

@@ -14,3 +14,19 @@ REGISTER_TYPE_TO_READ_FUNCTION_CODE = {"Coils": 0x01,
                                        "Discrete Inputs": 0x02,
                                        "Input Registers": 0x04,
                                        "Holding Registers": 0x03}
+
+STRUCT_DATA_TYPE = {"Unsigned Short": "H",
+                    "Signed Short": "h",
+                    "Float": "f",
+                    "Unsigned Long": "L",
+                    "Signed Long": "l"}
+
+ENDIANNESS = {"MSB, LSB": '>',
+              "LSB, MSB": '<',
+              "MSW, LSW": '>',
+              "LSW, MSW": '<'}
+
+RADIX = {"Decimal": 10,
+         "Hexadecimal": 16,
+         "Octal": 8,
+         "Binary": 2}
