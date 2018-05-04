@@ -1,5 +1,5 @@
 from PyQt5.QtCore import QObject, QThread, pyqtSignal, pyqtSlot, Qt
-from PyQt5.QtWidgets import QApplication, QTableWidgetItem, QLineEdit, QWidget
+from PyQt5.QtWidgets import QApplication, QTableWidgetItem, QLineEdit, QWidget, QComboBox
 
 from visualizer.gui_main_window import Ui_MainWindow
 from visualizer.modbus_worker import ModbusWorker
@@ -29,6 +29,7 @@ class VisualizerApp(Ui_MainWindow, QObject):
         self.configure_modbus_client()
 
         self.new_network_settings_flag = False
+        self.current_table_data = []
 
     def connect_slots(self):
         # Connect all signals/slots
@@ -52,6 +53,9 @@ class VisualizerApp(Ui_MainWindow, QObject):
             else:
                 self.worker.polling_finished.connect(lambda w=widget: w.setEnabled(True), Qt.QueuedConnection)
                 self.worker.polling_started.connect(lambda w=widget: w.setDisabled(True), Qt.QueuedConnection)
+
+        for cbox in self.displaySettingsGroupBox.findChildren(QComboBox):
+            cbox.currentTextChanged.connect(lambda: self.write_poll_table(self.current_table_data))
 
         for line_edit in self.networkSettingsGroupBox.findChildren(QLineEdit):
             line_edit.textChanged.connect(self.set_new_network_settings_flag)
@@ -91,6 +95,7 @@ class VisualizerApp(Ui_MainWindow, QObject):
 
     @pyqtSlot(list)
     def write_poll_table(self, data):
+        self.current_table_data = data
         self.clear_poll_table()
         num_rows = self.pollTable.rowCount()
 
