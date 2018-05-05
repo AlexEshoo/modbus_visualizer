@@ -39,6 +39,7 @@ class VisualizerApp(Ui_MainWindow, QObject):
         self.startPollingPushButton.clicked.connect(self.continuous_poll_begin)
         self.stopPollingPushButton.clicked.connect(self.stop_polling)
         self.startRegisterSpinBox.valueChanged.connect(self.update_poll_table_column_headers)
+        self.registerTypeComboBox.currentTextChanged.connect(self.clear_poll_table)
 
         self.modbus_settings_changed.connect(self.worker.configure_client, Qt.QueuedConnection)
         self.worker.console_message_available.connect(self.write_console, Qt.QueuedConnection)
