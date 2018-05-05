@@ -19,6 +19,7 @@ class VisualizerApp(Ui_MainWindow, QObject):
 
         self.new_network_settings_flag = False
         self.current_table_data = []
+        self.console_message_number = 0
 
         self.worker_thread = QThread()
         self.worker = ModbusWorker()
@@ -204,9 +205,10 @@ class VisualizerApp(Ui_MainWindow, QObject):
         cursor = self.consoleTextEdit.textCursor()
         cursor.movePosition(cursor.End)
         self.consoleTextEdit.setTextCursor(cursor)
-        cursor.insertText("\n" + msg)
+        cursor.insertText("\n" + f"({self.console_message_number}): " + msg)
 
         self.consoleTextEdit.ensureCursorVisible()  # Auto scroll to bottom
+        self.console_message_number += 1
 
     def update_display_settings_options(self):
         if self.registerTypeComboBox.currentText() in ("Coils", "Discrete Inputs"):
