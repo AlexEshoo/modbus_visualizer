@@ -191,9 +191,17 @@ class VisualizerApp(Ui_MainWindow, QObject):
 
     @pyqtSlot(str)
     def write_console(self, msg):
-        # self.consoleLineEdit.setText("")
-        # time.sleep(0.05)  # Seems to be doing nothing now...
-        self.consoleLineEdit.setText(msg)
+        try:
+            self.consoleTextEdit.insertPlainText('\n' + msg)
+
+            # Auto scroll to bottom
+            cursor = self.consoleTextEdit.textCursor()
+            cursor.movePosition(cursor.End)
+            self.consoleTextEdit.ensureCursorVisible()
+
+            print('\n')
+        except Exception as e:
+            print(e)
 
     def update_display_settings_options(self):
         if self.registerTypeComboBox.currentText() in ("Coils", "Discrete Inputs"):
