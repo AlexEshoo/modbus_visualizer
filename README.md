@@ -17,6 +17,7 @@
 * Full register address display (show what the full register number is)
 * Read Device information metadata
 * Unit ID Support
+* Settings save to and load from file.
 
 ## Developing
 

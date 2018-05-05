@@ -45,6 +45,7 @@ class ModbusWorker(QObject):
             host = settings["host"]
             port = settings["port"]
             self.client = ModbusTcpClient(host, port)
+            self.console_message_available.emit(f"Attempting to connect to {host} on port {port}")
 
         elif settings["network_type"] is "rtu":
             ...
