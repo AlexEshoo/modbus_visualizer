@@ -1,11 +1,18 @@
 # modbus_visualizer
 
+## Current Features
+* Modbus TCP support
+* Single and Continuous Polling of registers
+* Data display settings including:
+    * Data type
+    * Radix
+    * Byte and Word Endianness
+* Modbus Error Response Handling
+
 ## Future Features
 * Modbus RTU support (ascii too?)
 * Writing Registers
 * Logging to File
-* Modbus Error Response Handling
-* Different data-type representations in the table (float, endian swapping etc.)
 * Zero mode (1 or 0 index for registers)
 * Full register address display (show what the full register number is)
 
