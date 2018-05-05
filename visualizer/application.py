@@ -17,6 +17,9 @@ class VisualizerApp(Ui_MainWindow, QObject):
         super().__init__()
         self.setupUi(main_window)
 
+        self.new_network_settings_flag = False
+        self.current_table_data = []
+
         self.worker_thread = QThread()
         self.worker = ModbusWorker()
         self.worker.moveToThread(self.worker_thread)
@@ -25,11 +28,8 @@ class VisualizerApp(Ui_MainWindow, QObject):
         self.connect_slots()
         self.init_poll_table()
         self.update_poll_table_column_headers()
-
         self.configure_modbus_client()
-
-        self.new_network_settings_flag = False
-        self.current_table_data = []
+        self.update_display_settings_options()
 
     def connect_slots(self):
         # Connect all signals/slots
@@ -54,8 +54,11 @@ class VisualizerApp(Ui_MainWindow, QObject):
                 self.worker.polling_finished.connect(lambda w=widget: w.setEnabled(True), Qt.QueuedConnection)
                 self.worker.polling_started.connect(lambda w=widget: w.setDisabled(True), Qt.QueuedConnection)
 
+        # Connect Display Settings Functions
         for cbox in self.displaySettingsGroupBox.findChildren(QComboBox):
             cbox.currentTextChanged.connect(lambda: self.write_poll_table(self.current_table_data))
+        self.dataTypeComboBox.currentTextChanged.connect(self.update_display_settings_options)
+        self.registerTypeComboBox.currentTextChanged.connect(self.update_display_settings_options)
 
         for line_edit in self.networkSettingsGroupBox.findChildren(QLineEdit):
             line_edit.textChanged.connect(self.set_new_network_settings_flag)
@@ -188,6 +191,19 @@ class VisualizerApp(Ui_MainWindow, QObject):
         # self.consoleLineEdit.setText("")
         # time.sleep(0.05)  # Seems to be doing nothing now...
         self.consoleLineEdit.setText(msg)
+
+    def update_display_settings_options(self):
+        if self.registerTypeComboBox.currentText() in ("Coils", "Discrete Inputs"):
+            self.displaySettingsGroupBox.setDisabled(True)
+            return
+        else:
+            self.displaySettingsGroupBox.setEnabled(True)
+
+        dtype = STRUCT_DATA_TYPE[self.dataTypeComboBox.currentText()]
+        if dtype in ('H', 'h'):
+            self.wordEndianessComboBox.setDisabled(True)
+        else:
+            self.wordEndianessComboBox.setEnabled(True)
 
     @staticmethod
     def exit():
