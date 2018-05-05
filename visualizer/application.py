@@ -196,7 +196,6 @@ class VisualizerApp(Ui_MainWindow, QObject):
         number_of_lines = len(current_text_lines)
 
         if number_of_lines > MAX_LINES:
-            print("TEXT", '\n'.join(current_text_lines[1:]))
             self.consoleTextEdit.setPlainText('\n'.join(current_text_lines[1:]))  # Rewrite all but the first line.
 
         # Using `insertPlainText` on `self.consoleTextEdit` uses a different cursor which starts at the end of it's
