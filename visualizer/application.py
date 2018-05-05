@@ -39,7 +39,7 @@ class VisualizerApp(Ui_MainWindow, QObject):
         self.startPollingPushButton.clicked.connect(self.continuous_poll_begin)
         self.stopPollingPushButton.clicked.connect(self.stop_polling)
         self.startRegisterSpinBox.valueChanged.connect(self.update_poll_table_column_headers)
-        self.registerTypeComboBox.currentTextChanged.connect(self.clear_poll_table)
+        self.registerTypeComboBox.currentTextChanged.connect(lambda: self.clear_poll_table(clear_data=True))
 
         self.modbus_settings_changed.connect(self.worker.configure_client, Qt.QueuedConnection)
         self.worker.console_message_available.connect(self.write_console, Qt.QueuedConnection)
@@ -89,13 +89,15 @@ class VisualizerApp(Ui_MainWindow, QObject):
         for i in range(num_cols):
             self.pollTable.horizontalHeaderItem(i).setText(str(start + i * num_rows))
 
-    def clear_poll_table(self):
+    def clear_poll_table(self, clear_data=False):
         num_rows = self.pollTable.rowCount()
         num_cols = self.pollTable.columnCount()
 
         for j in range(num_cols):
             for i in range(num_rows):
                 self.pollTable.item(i, j).setText("")
+        if clear_data:
+            self.current_table_data = []
 
     @pyqtSlot(list)
     def write_poll_table(self, data):
