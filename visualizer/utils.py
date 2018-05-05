@@ -58,7 +58,7 @@ def format_data(data, dtype:str, byte_order=">", word_order=">", base=10):
     if size == 4:
         copy = formatted[:]
         formatted = []
-        for i, num in enumerate(copy):
+        for num in copy:
             formatted.extend([num, ''])  # Leave every other cell blank since registers are combined in size 4
 
     return formatted
