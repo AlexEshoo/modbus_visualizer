@@ -15,6 +15,16 @@ def str_base(number,base):
     return digit_to_char(m)
 
 def format_data(data, dtype:str, byte_order=">", word_order=">", base=10):
+    """
+    Should convert a list of data to the specified data type in the specified base.
+
+    :param data:
+    :param dtype:
+    :param byte_order:
+    :param word_order:
+    :param base:
+    :return:
+    """
     raw_byte_str = struct.pack(byte_order + 'H'*len(data), *data)
     size = struct.calcsize(dtype)
     stub = len(raw_byte_str) % size
@@ -40,9 +50,18 @@ def format_data(data, dtype:str, byte_order=">", word_order=">", base=10):
     if prefix:
         # pad_len -> https://math.stackexchange.com/questions/593670/proving-number-of-digits-d-to-represent-integer-n-in-base-b
         pad_len = int(floor( log(2**(size * 8) + 1, base) ))  # Putting the math degree to use.
-        return [ prefix + str_base(i, base).rjust(pad_len, '0') for i in result ]
+        formatted = [ prefix + str_base(i, base).rjust(pad_len, '0') for i in result ]
+
     else:
-        return [ str_base(i, base) for i in result ]
+        formatted = [ str_base(i, base) for i in result ]
+
+    if size == 4:
+        copy = formatted[:]
+        formatted = []
+        for i, num in enumerate(copy):
+            formatted.extend([num, ''])  # Leave every other cell blank since registers are combined in size 4
+
+    return formatted
 
 if __name__ == '__main__':
     x = str_base(20, 2).rjust(8,'0')
