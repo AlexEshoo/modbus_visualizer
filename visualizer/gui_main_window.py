@@ -94,7 +94,7 @@ class Ui_MainWindow(object):
         sizePolicy.setHeightForWidth(self.startRegisterSpinBox.sizePolicy().hasHeightForWidth())
         self.startRegisterSpinBox.setSizePolicy(sizePolicy)
         self.startRegisterSpinBox.setMaximum(65535)
-        self.startRegisterSpinBox.setProperty("value", 1)
+        self.startRegisterSpinBox.setProperty("value", 0)
         self.startRegisterSpinBox.setObjectName("startRegisterSpinBox")
         self.gridLayout_4.addWidget(self.startRegisterSpinBox, 1, 2, 1, 1)
         self.registerTypeComboBox = QtWidgets.QComboBox(self.pollingSettingsGroupBox)
