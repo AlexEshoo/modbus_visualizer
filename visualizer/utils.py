@@ -52,6 +52,9 @@ def format_data(data, dtype:str, byte_order=">", word_order=">", base=10):
         pad_len = int(floor( log(2**(size * 8) + 1, base) ))  # Putting the math degree to use.
         formatted = [ prefix + str_base(i, base).rjust(pad_len, '0') for i in result ]
 
+    elif dtype == 'f':
+        formatted = [ str(i) for i in result ]  # Don't call `str_base` since base is always 10 for floats.
+                                                # And it causes strange formatted outputs for negative floats.
     else:
         formatted = [ str_base(i, base) for i in result ]
 
