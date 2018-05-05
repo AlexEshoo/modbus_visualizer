@@ -19,6 +19,7 @@ class VisualizerApp(Ui_MainWindow, QObject):
 
         self.new_network_settings_flag = False
         self.current_table_data = []
+        self.console_message_number = 0
 
         self.worker_thread = QThread()
         self.worker = ModbusWorker()
@@ -191,9 +192,23 @@ class VisualizerApp(Ui_MainWindow, QObject):
 
     @pyqtSlot(str)
     def write_console(self, msg):
-        # self.consoleLineEdit.setText("")
-        # time.sleep(0.05)  # Seems to be doing nothing now...
-        self.consoleLineEdit.setText(msg)
+        MAX_LINES = 500
+        current_text_lines = self.consoleTextEdit.toPlainText().split('\n')
+        number_of_lines = len(current_text_lines)
+
+        if number_of_lines > MAX_LINES:
+            self.consoleTextEdit.setPlainText('\n'.join(current_text_lines[1:]))  # Rewrite all but the first line.
+
+        # Using `insertPlainText` on `self.consoleTextEdit` uses a different cursor which starts at the end of it's
+        # known document. After the `setPlainText` method is called, that cursor doesnt move, hence why we need a
+        # new cursor to write at the end of the document.
+        cursor = self.consoleTextEdit.textCursor()
+        cursor.movePosition(cursor.End)
+        self.consoleTextEdit.setTextCursor(cursor)
+        cursor.insertText("\n" + f"({self.console_message_number}): " + msg)
+
+        self.consoleTextEdit.ensureCursorVisible()  # Auto scroll to bottom
+        self.console_message_number += 1
 
     def update_display_settings_options(self):
         if self.registerTypeComboBox.currentText() in ("Coils", "Discrete Inputs"):
