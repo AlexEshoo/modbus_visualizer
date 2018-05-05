@@ -57,8 +57,8 @@ class VisualizerApp(Ui_MainWindow, QObject):
 
         # Connect Display Settings Functions
         for cbox in self.displaySettingsGroupBox.findChildren(QComboBox):
-            cbox.currentTextChanged.connect(lambda: self.write_poll_table(self.current_table_data))
-        self.dataTypeComboBox.currentTextChanged.connect(self.update_display_settings_options)
+            cbox.currentTextChanged.connect(self.update_display_settings_options)
+
         self.registerTypeComboBox.currentTextChanged.connect(self.update_display_settings_options)
 
         for line_edit in self.networkSettingsGroupBox.findChildren(QLineEdit):
@@ -204,9 +204,11 @@ class VisualizerApp(Ui_MainWindow, QObject):
 
         dtype = STRUCT_DATA_TYPE[self.dataTypeComboBox.currentText()]
         if dtype == 'f':
+            self.numberBaseComboBox.setDisabled(True)  # Disable number base selection when using float.
+            self.numberBaseComboBox.blockSignals(True)  # Prevent application from making another call to this function
             i = self.numberBaseComboBox.findText("Decimal")
-            self.numberBaseComboBox.setCurrentIndex(i)
-            self.numberBaseComboBox.setDisabled(True)
+            self.numberBaseComboBox.setCurrentIndex(i)  # Change selected base to Decimal
+            self.numberBaseComboBox.blockSignals(False)  # Re-Allow signals from numberBaseComboBox
         else:
             self.numberBaseComboBox.setEnabled(True)
 
@@ -214,6 +216,8 @@ class VisualizerApp(Ui_MainWindow, QObject):
             self.wordEndianessComboBox.setDisabled(True)
         else:
             self.wordEndianessComboBox.setEnabled(True)
+
+        self.write_poll_table(self.current_table_data)  # Write the table again with the updated display settings.
 
     @staticmethod
     def exit():
