@@ -1,9 +1,10 @@
 from PyQt5.QtCore import QObject, QThread, pyqtSignal, pyqtSlot, Qt
-from PyQt5.QtWidgets import QApplication, QTableWidgetItem, QLineEdit, QWidget
+from PyQt5.QtWidgets import QApplication, QTableWidgetItem, QLineEdit, QWidget, QComboBox
 
 from visualizer.gui_main_window import Ui_MainWindow
 from visualizer.modbus_worker import ModbusWorker
-from visualizer.constants import REGISTER_TYPE_TO_READ_FUNCTION_CODE
+from visualizer.constants import REGISTER_TYPE_TO_READ_FUNCTION_CODE, STRUCT_DATA_TYPE, ENDIANNESS, RADIX
+from visualizer.utils import format_data
 
 
 class VisualizerApp(Ui_MainWindow, QObject):
@@ -16,6 +17,9 @@ class VisualizerApp(Ui_MainWindow, QObject):
         super().__init__()
         self.setupUi(main_window)
 
+        self.new_network_settings_flag = False
+        self.current_table_data = []
+
         self.worker_thread = QThread()
         self.worker = ModbusWorker()
         self.worker.moveToThread(self.worker_thread)
@@ -24,10 +28,8 @@ class VisualizerApp(Ui_MainWindow, QObject):
         self.connect_slots()
         self.init_poll_table()
         self.update_poll_table_column_headers()
-
         self.configure_modbus_client()
-
-        self.new_network_settings_flag = False
+        self.update_display_settings_options()
 
     def connect_slots(self):
         # Connect all signals/slots
@@ -51,6 +53,12 @@ class VisualizerApp(Ui_MainWindow, QObject):
             else:
                 self.worker.polling_finished.connect(lambda w=widget: w.setEnabled(True), Qt.QueuedConnection)
                 self.worker.polling_started.connect(lambda w=widget: w.setDisabled(True), Qt.QueuedConnection)
+
+        # Connect Display Settings Functions
+        for cbox in self.displaySettingsGroupBox.findChildren(QComboBox):
+            cbox.currentTextChanged.connect(lambda: self.write_poll_table(self.current_table_data))
+        self.dataTypeComboBox.currentTextChanged.connect(self.update_display_settings_options)
+        self.registerTypeComboBox.currentTextChanged.connect(self.update_display_settings_options)
 
         for line_edit in self.networkSettingsGroupBox.findChildren(QLineEdit):
             line_edit.textChanged.connect(self.set_new_network_settings_flag)
@@ -90,12 +98,23 @@ class VisualizerApp(Ui_MainWindow, QObject):
 
     @pyqtSlot(list)
     def write_poll_table(self, data):
+        self.current_table_data = data
         self.clear_poll_table()
         num_rows = self.pollTable.rowCount()
 
         cur_col = 0
-        for i, datum in enumerate(data):
-            self.pollTable.item(i % 10, cur_col).setText(str(datum))
+        dtype = STRUCT_DATA_TYPE[self.dataTypeComboBox.currentText()]
+        byte_order = ENDIANNESS[self.byteEndianessComboBox.currentText()]
+        word_order = ENDIANNESS[self.wordEndianessComboBox.currentText()]
+        base = RADIX[self.numberBaseComboBox.currentText()]
+
+        if self.registerTypeComboBox.currentText() in ("Holding Registers", "Input Registers"):
+            formatted = format_data(data, dtype, byte_order=byte_order, word_order=word_order, base=base)
+        else:
+            formatted = [ str(i) for i in data ]  # make bools into strings.
+
+        for i, datum in enumerate(formatted):
+            self.pollTable.item(i % 10, cur_col).setText(datum)
             # self.pollTable.setItem(i % 10, cur_col, QTableWidgetItem(str(datum)))
             if (i + 1) % num_rows == 0:
                 cur_col += 1
@@ -172,6 +191,26 @@ class VisualizerApp(Ui_MainWindow, QObject):
         # self.consoleLineEdit.setText("")
         # time.sleep(0.05)  # Seems to be doing nothing now...
         self.consoleLineEdit.setText(msg)
+
+    def update_display_settings_options(self):
+        if self.registerTypeComboBox.currentText() in ("Coils", "Discrete Inputs"):
+            self.displaySettingsGroupBox.setDisabled(True)
+            return
+        else:
+            self.displaySettingsGroupBox.setEnabled(True)
+
+        dtype = STRUCT_DATA_TYPE[self.dataTypeComboBox.currentText()]
+        if dtype == 'f':
+            i = self.numberBaseComboBox.findText("Decimal")
+            self.numberBaseComboBox.setCurrentIndex(i)
+            self.numberBaseComboBox.setDisabled(True)
+        else:
+            self.numberBaseComboBox.setEnabled(True)
+
+        if dtype in ('H', 'h'):
+            self.wordEndianessComboBox.setDisabled(True)
+        else:
+            self.wordEndianessComboBox.setEnabled(True)
 
     @staticmethod
     def exit():

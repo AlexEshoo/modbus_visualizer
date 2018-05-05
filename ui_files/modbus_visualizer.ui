@@ -6,12 +6,12 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1064</width>
-    <height>671</height>
+    <width>1063</width>
+    <height>674</height>
    </rect>
   </property>
   <property name="sizePolicy">
-   <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+   <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
     <horstretch>0</horstretch>
     <verstretch>0</verstretch>
    </sizepolicy>
@@ -19,9 +19,15 @@
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
+  <property name="tabShape">
+   <enum>QTabWidget::Rounded</enum>
+  </property>
+  <property name="dockNestingEnabled">
+   <bool>false</bool>
+  </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout">
-    <item row="0" column="0">
+    <item row="0" column="1" alignment="Qt::AlignLeft|Qt::AlignTop">
      <widget class="QFrame" name="mainFrame">
       <property name="sizePolicy">
        <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
@@ -36,20 +42,10 @@
        <enum>QFrame::Raised</enum>
       </property>
       <layout class="QGridLayout" name="gridLayout_3">
-       <item row="4" column="0">
-        <widget class="QLineEdit" name="consoleLineEdit">
-         <property name="enabled">
-          <bool>true</bool>
-         </property>
-         <property name="readOnly">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
        <item row="2" column="0">
         <widget class="QGroupBox" name="pollingSettingsGroupBox">
          <property name="sizePolicy">
-          <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
@@ -58,6 +54,65 @@
           <string>Polling Settings</string>
          </property>
          <layout class="QGridLayout" name="gridLayout_4">
+          <item row="1" column="6">
+           <widget class="QSpinBox" name="updateTimeSpinBox">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimum">
+             <number>1</number>
+            </property>
+            <property name="maximum">
+             <number>999999</number>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="4">
+           <widget class="QPushButton" name="stopPollingPushButton">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="text">
+             <string>Stop Polling</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="2">
+           <widget class="QLabel" name="startRegisterLabel">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>Start Register</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="4">
+           <widget class="QLabel" name="numberOfRegistersLabel">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>Number of Registers</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="2">
+           <widget class="QPushButton" name="startPollingPushButton">
+            <property name="text">
+             <string>Start Polling</string>
+            </property>
+           </widget>
+          </item>
           <item row="1" column="4">
            <widget class="QSpinBox" name="numberOfRegistersSpinBox">
             <property name="sizePolicy">
@@ -77,26 +132,19 @@
             </property>
            </widget>
           </item>
-          <item row="2" column="0">
-           <widget class="QPushButton" name="singlePollPushButton">
-            <property name="text">
-             <string>Single Poll</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="6">
-           <widget class="QSpinBox" name="updateTimeSpinBox">
+          <item row="1" column="2">
+           <widget class="QSpinBox" name="startRegisterSpinBox">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
-            <property name="minimum">
-             <number>1</number>
-            </property>
             <property name="maximum">
-             <number>999999</number>
+             <number>65535</number>
+            </property>
+            <property name="value">
+             <number>1</number>
             </property>
            </widget>
           </item>
@@ -130,16 +178,10 @@
             </item>
            </widget>
           </item>
-          <item row="0" column="2">
-           <widget class="QLabel" name="startRegisterLabel">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
+          <item row="2" column="0">
+           <widget class="QPushButton" name="singlePollPushButton">
             <property name="text">
-             <string>Start Register</string>
+             <string>Single Poll</string>
             </property>
            </widget>
           </item>
@@ -156,29 +198,6 @@
             </property>
            </widget>
           </item>
-          <item row="1" column="2">
-           <widget class="QSpinBox" name="startRegisterSpinBox">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="maximum">
-             <number>65535</number>
-            </property>
-            <property name="value">
-             <number>1</number>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="2">
-           <widget class="QPushButton" name="startPollingPushButton">
-            <property name="text">
-             <string>Start Polling</string>
-            </property>
-           </widget>
-          </item>
           <item row="0" column="0">
            <widget class="QLabel" name="registerTypeLabel">
             <property name="sizePolicy">
@@ -192,33 +211,10 @@
             </property>
            </widget>
           </item>
-          <item row="0" column="4">
-           <widget class="QLabel" name="numberOfRegistersLabel">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="text">
-             <string>Number of Registers</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="4">
-           <widget class="QPushButton" name="stopPollingPushButton">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-            <property name="text">
-             <string>Stop Polling</string>
-            </property>
-           </widget>
-          </item>
          </layout>
         </widget>
        </item>
-       <item row="3" column="0">
+       <item row="3" column="0" colspan="2">
         <widget class="QTableWidget" name="pollTable">
          <property name="enabled">
           <bool>true</bool>
@@ -370,10 +366,186 @@
          </column>
         </widget>
        </item>
-       <item row="0" column="0">
+       <item row="4" column="0" colspan="2">
+        <widget class="QLineEdit" name="consoleLineEdit">
+         <property name="enabled">
+          <bool>true</bool>
+         </property>
+         <property name="readOnly">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="1">
+        <widget class="QGroupBox" name="displaySettingsGroupBox">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="title">
+          <string>Display Settings</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_7">
+          <item row="1" column="3">
+           <widget class="QComboBox" name="wordEndianessComboBox">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <item>
+             <property name="text">
+              <string>MSW, LSW</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>LSW, MSW</string>
+             </property>
+            </item>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QComboBox" name="byteEndianessComboBox">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <item>
+             <property name="text">
+              <string>MSB, LSB</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>LSB, MSB</string>
+             </property>
+            </item>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QComboBox" name="dataTypeComboBox">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <item>
+             <property name="text">
+              <string>Unsigned Short</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Signed Short</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Float</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Unsigned Long</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Signed Long</string>
+             </property>
+            </item>
+           </widget>
+          </item>
+          <item row="1" column="0" alignment="Qt::AlignRight">
+           <widget class="QLabel" name="byteEndiannessLabel">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>Byte Order</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="0" alignment="Qt::AlignRight">
+           <widget class="QLabel" name="dataTypeLabel">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>Data Type</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="2" alignment="Qt::AlignRight">
+           <widget class="QLabel" name="wordEndiannessLabel">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>Word Order</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="2" alignment="Qt::AlignRight">
+           <widget class="QLabel" name="numberBaseLabel">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>Number Base</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="3">
+           <widget class="QComboBox" name="numberBaseComboBox">
+            <item>
+             <property name="text">
+              <string>Decimal</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Hexadecimal</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Binary</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Octal</string>
+             </property>
+            </item>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item row="0" column="0" colspan="2">
         <widget class="QGroupBox" name="networkSettingsGroupBox">
          <property name="sizePolicy">
-          <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+          <sizepolicy hsizetype="Minimum" vsizetype="Maximum">
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
@@ -384,6 +556,12 @@
          <layout class="QGridLayout" name="gridLayout_5">
           <item row="0" column="0">
            <widget class="QRadioButton" name="rtuRadioButton">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
             <property name="text">
              <string>RTU</string>
             </property>
@@ -391,6 +569,12 @@
           </item>
           <item row="0" column="1">
            <widget class="QRadioButton" name="tcpRadioButton">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
             <property name="text">
              <string>TCP</string>
             </property>
@@ -418,6 +602,12 @@
            <widget class="QGroupBox" name="tcpSettingsGroupBox">
             <property name="enabled">
              <bool>true</bool>
+            </property>
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
             </property>
             <property name="title">
              <string>Modbus TCP Settings</string>
@@ -479,7 +669,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1064</width>
+     <width>1063</width>
      <height>21</height>
     </rect>
    </property>

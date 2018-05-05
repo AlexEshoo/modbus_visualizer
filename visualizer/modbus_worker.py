@@ -114,7 +114,6 @@ class ModbusWorker(QObject):
         self.console_message_available.emit("Polling Stopped.")
 
     def get_modbus_data(self, function_code, start_reg, length):
-        # TODO: Handle Modbus error codes properly.
         modbus_functions = {0x01: self.client.read_coils,
                             0x02: self.client.read_discrete_inputs,
                             0x04: self.client.read_input_registers,
