@@ -200,6 +200,13 @@ class VisualizerApp(Ui_MainWindow, QObject):
             self.displaySettingsGroupBox.setEnabled(True)
 
         dtype = STRUCT_DATA_TYPE[self.dataTypeComboBox.currentText()]
+        if dtype == 'f':
+            i = self.numberBaseComboBox.findText("Decimal")
+            self.numberBaseComboBox.setCurrentIndex(i)
+            self.numberBaseComboBox.setDisabled(True)
+        else:
+            self.numberBaseComboBox.setEnabled(True)
+
         if dtype in ('H', 'h'):
             self.wordEndianessComboBox.setDisabled(True)
         else:
