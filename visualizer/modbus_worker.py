@@ -41,6 +41,9 @@ class ModbusWorker(QObject):
     @pyqtSlot(dict)
     @busy_work_reject
     def configure_client(self, settings):
+        if self.client:
+            self.client.close()  # Properly close the client when re-configuring. Needed for Serial.
+
         if settings["network_type"] is "tcp":
             host = settings["host"]
             port = settings["port"]
