@@ -141,7 +141,13 @@ class VisualizerApp(Ui_MainWindow, QObject):
 
             settings = {}
             if serial_mode:
-                pass
+                settings["network_type"] = "serial"
+                settings["port"] = self.serialPortComboBox.currentText()
+                settings["protocol"] = self.serialProtocolComboBox.currentText().lower()
+                settings["baudrate"] = self.serialBaudRateSpinBox.value()
+                settings["stop_bits"] = int(self.serialStopBitsComboBox.currentText())
+                settings["byte_size"] = int(self.serialByteSizeComboBox.currentText())
+                settings["parity"] = self.serialParityComboBox.currentText()[0]  # Only uses first capital letter.
             elif tcp_mode:
                 settings["network_type"] = "tcp"
                 settings["host"] = self.tcpHostLineEdit.text()
