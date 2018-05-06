@@ -4,7 +4,7 @@ from PyQt5.QtWidgets import QApplication, QTableWidgetItem, QLineEdit, QWidget, 
 from visualizer.gui_main_window import Ui_MainWindow
 from visualizer.modbus_worker import ModbusWorker
 from visualizer.constants import REGISTER_TYPE_TO_READ_FUNCTION_CODE, STRUCT_DATA_TYPE, ENDIANNESS, RADIX
-from visualizer.utils import format_data
+from visualizer.utils import format_data, serial_ports
 
 
 class VisualizerApp(Ui_MainWindow, QObject):
@@ -31,6 +31,7 @@ class VisualizerApp(Ui_MainWindow, QObject):
         self.update_poll_table_column_headers()
         self.configure_modbus_client()
         self.update_display_settings_options()
+        self.init_serial_com_port_combo_box()
 
     def connect_slots(self):
         # Connect all signals/slots
@@ -79,6 +80,10 @@ class VisualizerApp(Ui_MainWindow, QObject):
         for j in range(num_cols):
             for i in range(num_rows):
                 self.pollTable.setItem(i, j, QTableWidgetItem(""))
+
+    def init_serial_com_port_combo_box(self):
+        com_ports = serial_ports()
+        self.serialPortComboBox.insertItems(0, com_ports)
 
     def update_poll_table_column_headers(self):
         self.clear_poll_table()  # Avoids confusion
