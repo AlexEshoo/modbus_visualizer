@@ -127,10 +127,10 @@ class VisualizerApp(Ui_MainWindow, QObject):
     def configure_modbus_client(self):
         if not self.worker.is_busy():
             tcp_mode = self.tcpRadioButton.isChecked()
-            rtu_mode = self.rtuRadioButton.isChecked()
+            serial_mode = self.serialRadioButton.isChecked()
 
             settings = {}
-            if rtu_mode:
+            if serial_mode:
                 pass
             elif tcp_mode:
                 settings["network_type"] = "tcp"
