@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1064</width>
-    <height>722</height>
+    <width>1068</width>
+    <height>823</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -380,7 +380,7 @@
          </layout>
         </widget>
        </item>
-       <item row="0" column="0" colspan="2">
+       <item row="0" column="0" colspan="2" alignment="Qt::AlignLeft">
         <widget class="QGroupBox" name="networkSettingsGroupBox">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Minimum" vsizetype="Maximum">
@@ -392,19 +392,6 @@
           <string>Network Settings</string>
          </property>
          <layout class="QGridLayout" name="gridLayout_5">
-          <item row="0" column="0">
-           <widget class="QRadioButton" name="rtuRadioButton">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="text">
-             <string>RTU</string>
-            </property>
-           </widget>
-          </item>
           <item row="0" column="1">
            <widget class="QRadioButton" name="tcpRadioButton">
             <property name="sizePolicy">
@@ -421,28 +408,247 @@
             </property>
            </widget>
           </item>
-          <item row="1" column="0">
-           <widget class="QGroupBox" name="rtuSettingsGroupBox">
+          <item row="3" column="1">
+           <widget class="QRadioButton" name="serialRadioButton">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>Serial</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="1">
+           <widget class="QGroupBox" name="serialSettingsGroupBox">
             <property name="enabled">
              <bool>false</bool>
             </property>
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
             <property name="title">
-             <string>Modbus RTU Settings</string>
+             <string>Modbus Serial Settings</string>
+            </property>
+            <property name="checkable">
+             <bool>false</bool>
             </property>
             <layout class="QGridLayout" name="gridLayout_2">
+             <item row="1" column="1">
+              <widget class="QComboBox" name="serialPortComboBox">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="1">
+              <widget class="QLabel" name="serialPortLabel">
+               <property name="text">
+                <string>Port</string>
+               </property>
+              </widget>
+             </item>
              <item row="0" column="0">
-              <widget class="QLineEdit" name="lineEdit"/>
+              <widget class="QLabel" name="serialProtocolLabel">
+               <property name="text">
+                <string>Protocol</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="0">
+              <widget class="QComboBox" name="serialProtocolComboBox">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <item>
+                <property name="text">
+                 <string>RTU</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>ASCII</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Binary</string>
+                </property>
+               </item>
+              </widget>
+             </item>
+             <item row="0" column="2">
+              <widget class="QLabel" name="serialBaudRateLabel">
+               <property name="text">
+                <string>Baudrate</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="5">
+              <widget class="QLabel" name="serialParityLabel">
+               <property name="text">
+                <string>Parity</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="5">
+              <widget class="QComboBox" name="serialParityComboBox">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <item>
+                <property name="text">
+                 <string>Even</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Odd</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>None</string>
+                </property>
+               </item>
+              </widget>
+             </item>
+             <item row="1" column="4">
+              <widget class="QComboBox" name="serialByteSizeComboBox">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="currentText">
+                <string>8</string>
+               </property>
+               <property name="currentIndex">
+                <number>3</number>
+               </property>
+               <property name="iconSize">
+                <size>
+                 <width>16</width>
+                 <height>16</height>
+                </size>
+               </property>
+               <item>
+                <property name="text">
+                 <string>5</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>6</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>7</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>8</string>
+                </property>
+               </item>
+              </widget>
+             </item>
+             <item row="1" column="2">
+              <widget class="QLineEdit" name="serialBaudRateLineEdit">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="text">
+                <string>9600</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="3">
+              <widget class="QLabel" name="serialStopBitsLabel">
+               <property name="text">
+                <string>Stop Bits</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="4">
+              <widget class="QLabel" name="serialByteSizeLabel">
+               <property name="text">
+                <string>Byte Size</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="3">
+              <widget class="QComboBox" name="serialStopBitsComboBox">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <item>
+                <property name="text">
+                 <string>1</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>2</string>
+                </property>
+               </item>
+              </widget>
+             </item>
+             <item row="0" column="6">
+              <widget class="QLabel" name="timeoutLabel">
+               <property name="text">
+                <string>Timeout</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="6">
+              <widget class="QDoubleSpinBox" name="timoutSpinBox">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="singleStep">
+                <double>1.000000000000000</double>
+               </property>
+               <property name="value">
+                <double>1.000000000000000</double>
+               </property>
+              </widget>
              </item>
             </layout>
            </widget>
           </item>
-          <item row="1" column="1">
+          <item row="2" column="1">
            <widget class="QGroupBox" name="tcpSettingsGroupBox">
             <property name="enabled">
              <bool>true</bool>
             </property>
             <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+             <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
@@ -451,6 +657,33 @@
              <string>Modbus TCP Settings</string>
             </property>
             <layout class="QGridLayout" name="gridLayout_6">
+             <item row="0" column="0">
+              <widget class="QLabel" name="tcpHostLabel">
+               <property name="text">
+                <string>Host</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="1">
+              <widget class="QLabel" name="tcpPortLabel">
+               <property name="text">
+                <string>Port</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="0">
+              <widget class="QLineEdit" name="tcpHostLineEdit">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="text">
+                <string>127.0.0.1</string>
+               </property>
+              </widget>
+             </item>
              <item row="1" column="1">
               <widget class="QLineEdit" name="tcpPortLineEdit">
                <property name="sizePolicy">
@@ -467,27 +700,6 @@
                </property>
                <property name="text">
                 <string>502</string>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="0">
-              <widget class="QLineEdit" name="tcpHostLineEdit">
-               <property name="text">
-                <string>127.0.0.1</string>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="0">
-              <widget class="QLabel" name="tcpHostLabel">
-               <property name="text">
-                <string>Host</string>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="1">
-              <widget class="QLabel" name="tcpPortLabel">
-               <property name="text">
-                <string>Port</string>
                </property>
               </widget>
              </item>
@@ -684,7 +896,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1064</width>
+     <width>1068</width>
      <height>21</height>
     </rect>
    </property>
@@ -722,23 +934,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>tcpRadioButton</sender>
-   <signal>clicked(bool)</signal>
-   <receiver>rtuSettingsGroupBox</receiver>
-   <slot>setDisabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>292</x>
-     <y>71</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>105</x>
-     <y>121</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>rtuRadioButton</sender>
+   <sender>serialRadioButton</sender>
    <signal>clicked(bool)</signal>
    <receiver>tcpSettingsGroupBox</receiver>
    <slot>setDisabled(bool)</slot>
@@ -754,13 +950,29 @@
    </hints>
   </connection>
   <connection>
-   <sender>rtuRadioButton</sender>
+   <sender>serialRadioButton</sender>
    <signal>clicked(bool)</signal>
-   <receiver>rtuSettingsGroupBox</receiver>
+   <receiver>serialSettingsGroupBox</receiver>
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
      <x>105</x>
+     <y>71</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>105</x>
+     <y>121</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>tcpRadioButton</sender>
+   <signal>clicked(bool)</signal>
+   <receiver>serialSettingsGroupBox</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>292</x>
      <y>71</y>
     </hint>
     <hint type="destinationlabel">
