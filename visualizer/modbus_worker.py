@@ -2,7 +2,7 @@ import time
 from queue import Queue, Empty
 from pymodbus.client.sync import ModbusTcpClient, ModbusSerialClient
 from pymodbus.pdu import ExceptionResponse
-from pymodbus.exceptions import ConnectionException
+from pymodbus.exceptions import ConnectionException, ModbusIOException, ModbusException
 from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot
 from visualizer.constants import MODBUS_EXCEPTION_CODES
 
@@ -143,10 +143,16 @@ class ModbusWorker(QObject):
             self.console_message_available.emit("Connection Failed.")
             return []
 
+        # This works for TCP Exceptions
         if isinstance(rr, ExceptionResponse):
             code = rr.exception_code
             msg = MODBUS_EXCEPTION_CODES[code]
             self.console_message_available.emit(f"Modbus Error Code {code}: {msg}")
+            return []
+
+        # This works for Serial Exceptions
+        elif isinstance(rr, ModbusException):
+            self.console_message_available.emit(f"{str(rr)}")
             return []
 
         else:  # Response is ModbusResponse
