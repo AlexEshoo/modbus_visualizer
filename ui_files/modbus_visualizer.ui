@@ -528,6 +528,12 @@
                  <height>0</height>
                 </size>
                </property>
+               <property name="currentText">
+                <string>None</string>
+               </property>
+               <property name="currentIndex">
+                <number>2</number>
+               </property>
                <item>
                 <property name="text">
                  <string>Even</string>
@@ -658,7 +664,7 @@
                 <double>1.000000000000000</double>
                </property>
                <property name="value">
-                <double>1.000000000000000</double>
+                <double>3.000000000000000</double>
                </property>
               </widget>
              </item>
