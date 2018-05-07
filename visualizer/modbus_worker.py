@@ -1,8 +1,8 @@
 import time
 from queue import Queue, Empty
-from pymodbus.client.sync import ModbusTcpClient
+from pymodbus.client.sync import ModbusTcpClient, ModbusSerialClient
 from pymodbus.pdu import ExceptionResponse
-from pymodbus.exceptions import ConnectionException
+from pymodbus.exceptions import ConnectionException, ModbusIOException, ModbusException
 from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot
 from visualizer.constants import MODBUS_EXCEPTION_CODES
 
@@ -41,14 +41,30 @@ class ModbusWorker(QObject):
     @pyqtSlot(dict)
     @busy_work_reject
     def configure_client(self, settings):
+        if self.client:
+            self.client.close()  # Properly close the client when re-configuring. Needed for Serial.
+
         if settings["network_type"] is "tcp":
             host = settings["host"]
             port = settings["port"]
             self.client = ModbusTcpClient(host, port)
             self.console_message_available.emit(f"Attempting to connect to {host} on port {port}")
 
-        elif settings["network_type"] is "rtu":
-            ...
+        elif settings["network_type"] is "serial":
+            port = settings["port"]
+            protocol = settings["protocol"]
+            baudrate = settings["baudrate"]
+            stop_bits = settings["stop_bits"]
+            byte_size = settings["byte_size"]
+            parity = settings["parity"]
+            self.client = ModbusSerialClient(method=protocol,
+                                             port=port,
+                                             baudrate=baudrate,
+                                             stopbits=stop_bits,
+                                             bytesize=byte_size,
+                                             parity=parity)
+            self.console_message_available.emit(f"Attempting to connect to on port {port}")
+
         else:
             self.console_message_available.emit("Unknown Network Type")
 
@@ -130,10 +146,16 @@ class ModbusWorker(QObject):
             self.console_message_available.emit("Connection Failed.")
             return []
 
+        # This works for TCP Exceptions
         if isinstance(rr, ExceptionResponse):
             code = rr.exception_code
             msg = MODBUS_EXCEPTION_CODES[code]
             self.console_message_available.emit(f"Modbus Error Code {code}: {msg}")
+            return []
+
+        # This works for Serial Exceptions
+        elif isinstance(rr, ModbusException):
+            self.console_message_available.emit(f"{str(rr)}")
             return []
 
         else:  # Response is ModbusResponse

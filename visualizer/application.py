@@ -1,10 +1,10 @@
 from PyQt5.QtCore import QObject, QThread, pyqtSignal, pyqtSlot, Qt
-from PyQt5.QtWidgets import QApplication, QTableWidgetItem, QLineEdit, QWidget, QComboBox
+from PyQt5.QtWidgets import QApplication, QTableWidgetItem, QLineEdit, QWidget, QComboBox, QSpinBox, QDoubleSpinBox
 
 from visualizer.gui_main_window import Ui_MainWindow
 from visualizer.modbus_worker import ModbusWorker
 from visualizer.constants import REGISTER_TYPE_TO_READ_FUNCTION_CODE, STRUCT_DATA_TYPE, ENDIANNESS, RADIX
-from visualizer.utils import format_data
+from visualizer.utils import format_data, serial_ports
 
 
 class VisualizerApp(Ui_MainWindow, QObject):
@@ -31,6 +31,7 @@ class VisualizerApp(Ui_MainWindow, QObject):
         self.update_poll_table_column_headers()
         self.configure_modbus_client()
         self.update_display_settings_options()
+        self.init_serial_com_port_combo_box()
 
     def connect_slots(self):
         # Connect all signals/slots
@@ -62,8 +63,13 @@ class VisualizerApp(Ui_MainWindow, QObject):
 
         self.registerTypeComboBox.currentTextChanged.connect(self.update_display_settings_options)
 
-        for line_edit in self.networkSettingsGroupBox.findChildren(QLineEdit):
-            line_edit.textChanged.connect(self.set_new_network_settings_flag)
+        for widget in self.networkSettingsGroupBox.findChildren(QWidget):
+            if isinstance(widget, QLineEdit):
+                widget.textChanged.connect(self.set_new_network_settings_flag)
+            if isinstance(widget, QComboBox):
+                widget.currentTextChanged.connect(self.set_new_network_settings_flag)
+            if isinstance(widget, QSpinBox) or isinstance(widget, QDoubleSpinBox):
+                widget.valueChanged.connect(self.set_new_network_settings_flag)
 
     @pyqtSlot()
     def set_new_network_settings_flag(self):
@@ -79,6 +85,10 @@ class VisualizerApp(Ui_MainWindow, QObject):
         for j in range(num_cols):
             for i in range(num_rows):
                 self.pollTable.setItem(i, j, QTableWidgetItem(""))
+
+    def init_serial_com_port_combo_box(self):
+        com_ports = serial_ports()
+        self.serialPortComboBox.insertItems(0, com_ports)
 
     def update_poll_table_column_headers(self):
         self.clear_poll_table()  # Avoids confusion
@@ -127,11 +137,17 @@ class VisualizerApp(Ui_MainWindow, QObject):
     def configure_modbus_client(self):
         if not self.worker.is_busy():
             tcp_mode = self.tcpRadioButton.isChecked()
-            rtu_mode = self.rtuRadioButton.isChecked()
+            serial_mode = self.serialRadioButton.isChecked()
 
             settings = {}
-            if rtu_mode:
-                pass
+            if serial_mode:
+                settings["network_type"] = "serial"
+                settings["port"] = self.serialPortComboBox.currentText()
+                settings["protocol"] = self.serialProtocolComboBox.currentText().lower()
+                settings["baudrate"] = self.serialBaudRateSpinBox.value()
+                settings["stop_bits"] = int(self.serialStopBitsComboBox.currentText())
+                settings["byte_size"] = int(self.serialByteSizeComboBox.currentText())
+                settings["parity"] = self.serialParityComboBox.currentText()[0]  # Only uses first capital letter.
             elif tcp_mode:
                 settings["network_type"] = "tcp"
                 settings["host"] = self.tcpHostLineEdit.text()
