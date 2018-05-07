@@ -8,9 +8,12 @@
     * Radix
     * Byte and Word Endianness
 * Modbus Error Response Handling
+* Modbus Serial Support for the following framers:
+    * RTU
+    * ASCII
+    * Binary
 
 ## Future Features
-* Modbus RTU support (ascii too?)
 * Writing Registers
 * Logging to File
 * Zero mode (1 or 0 index for registers)
@@ -36,5 +39,14 @@ pyuic5 ./ui_files/modbus_visualizer.ui > ./visualizer/gui_main_window.py
 
 ### Running
 Run the program: `python main.py`
+
+
+### Testing
+The provided test server hosts a live modbus server on the interface of choice specified by command line arguments. 
+This allows for a manual test server to be used to verify new features or bugfixes to the program. Eventually we should 
+write some automated test, but this will do for now.
+
+Specify the network type and protocol framer (only for serial) when launching the test server by passing command line 
+arguments.
 
 For testing the server without a live modbus server or serial modbus device, run the testserver `python test_server.py`.
