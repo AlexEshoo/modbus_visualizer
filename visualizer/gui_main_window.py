@@ -346,7 +346,7 @@ class Ui_MainWindow(object):
         self.serialBaudRateSpinBox.setSizePolicy(sizePolicy)
         self.serialBaudRateSpinBox.setMinimumSize(QtCore.QSize(80, 0))
         self.serialBaudRateSpinBox.setMaximum(999999)
-        self.serialBaudRateSpinBox.setProperty("value", 9600)
+        self.serialBaudRateSpinBox.setProperty("value", 19200)
         self.serialBaudRateSpinBox.setObjectName("serialBaudRateSpinBox")
         self.gridLayout_2.addWidget(self.serialBaudRateSpinBox, 1, 2, 1, 1)
         self.gridLayout_5.addWidget(self.serialSettingsGroupBox, 4, 1, 1, 1)

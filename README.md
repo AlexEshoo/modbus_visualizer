@@ -48,5 +48,20 @@ write some automated test, but this will do for now.
 
 Specify the network type and protocol framer (only for serial) when launching the test server by passing command line 
 arguments.
+* `-s, --server-type`: Can be either `serial` or `tcp` sets the network type for the test
+    server (defualt = tcp)
+* `-i, --ip`: Sets the IP address for the tcp server (defualt = 127.0.0.1)
+* `-p, --tcp-port`: Sets the port for the tcp server (default = 5020)
+* `-f, --framer`: Sets the protocol framer for serial server. Can be `rtu`, `ascii`, or `binary`. 
+    (default = rtu)
+* `-c, --com-port`: Com port name for the serial server. MUST BE PROVIDED. (default = None)
+* `--stop-bits`: The number of stop bits for the serial server. Can be 1 or 2 (default = 1)
+* `--byte-size`: The byte length for the serial server. Can be 5,6,7, or 8. (default = 8)
+* `-b, --baud-rate`: The baud rate for the serial server. (default = 19200)
 
-For testing the server without a live modbus server or serial modbus device, run the testserver `python test_server.py`.
+To test a serial server without an actual modbus device, a virtual com port program can be used on 
+windows such as:
+* [com0com](https://sourceforge.net/projects/com0com/)
+* [Virtual Serial Port Driver](https://www.eltima.com/products/vspdxp/)
+
+On Linux a pty can be used to link two serial sessions to test the server.
