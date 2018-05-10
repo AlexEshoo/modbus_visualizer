@@ -481,7 +481,7 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
+        MainWindow.setWindowTitle(_translate("MainWindow", "Modbus Visualizer"))
         self.pollingSettingsGroupBox.setTitle(_translate("MainWindow", "Polling Settings"))
         self.stopPollingPushButton.setText(_translate("MainWindow", "Stop Polling"))
         self.startRegisterLabel.setText(_translate("MainWindow", "Start Register"))
