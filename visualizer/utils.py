@@ -2,7 +2,7 @@ import glob
 import serial
 import struct
 import sys
-from math import log, floor
+from math import log, ceil
 
 def digit_to_char(digit):
     if digit < 10:
@@ -52,7 +52,7 @@ def format_data(data, dtype:str, byte_order=">", word_order=">", base=10):
     prefix = num_base_prefixes.get(base, "")
     if prefix:
         # pad_len -> https://math.stackexchange.com/questions/593670/proving-number-of-digits-d-to-represent-integer-n-in-base-b
-        pad_len = int(floor( log(2**(size * 8) + 1, base) ))  # Putting the math degree to use.
+        pad_len = int(ceil( log(2**(size * 8), base) ))  # Putting the math degree to use.
 
         formatted = []
         for i in result:
