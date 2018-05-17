@@ -73,6 +73,7 @@ LELW = [0x0080, 0x2842]
 
 registers = BEBW + BELW + LEBW + LELW
 context[slave_id].setValues(0x04, 0x00, registers)  # Sets holding registers (fx=3), start address 0x00 with registers.
+context[slave_id].setValues(0x03, 0x01, [0xFFFF, 0xABCD])
 
 
 update_thread = threading.Thread(target=register_updater ,args=(context,))

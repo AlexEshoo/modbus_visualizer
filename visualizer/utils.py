@@ -53,7 +53,18 @@ def format_data(data, dtype:str, byte_order=">", word_order=">", base=10):
     if prefix:
         # pad_len -> https://math.stackexchange.com/questions/593670/proving-number-of-digits-d-to-represent-integer-n-in-base-b
         pad_len = int(floor( log(2**(size * 8) + 1, base) ))  # Putting the math degree to use.
-        formatted = [ prefix + str_base(i, base).rjust(pad_len, '0') for i in result ]
+
+        formatted = []
+        for i in result:
+            num = str_base(i, base)
+            if num[0] == '-':
+                sign = '-'
+                num = num[1:]
+            else:
+                sign = ''
+
+            formatted.append(sign + prefix + num.upper().rjust(pad_len, '0'))
+        # formatted = [ prefix + str_base(i, base).rjust(pad_len, '0') for i in result ]
 
     elif dtype == 'f':
         formatted = [ str(i) for i in result ]  # Don't call `str_base` since base is always 10 for floats.
