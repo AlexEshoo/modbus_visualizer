@@ -250,6 +250,6 @@ class VisualizerApp(Ui_MainWindow, QObject):
 
         self.write_poll_table(self.current_table_data)  # Write the table again with the updated display settings.
 
-    @staticmethod
-    def exit():
+    def exit(self):
+        self.worker.shutdown()
         QApplication.quit()

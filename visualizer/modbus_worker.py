@@ -165,3 +165,7 @@ class ModbusWorker(QObject):
                 data = rr.bits[:length]  # For Coil/Discrete Input Responses
 
         return data
+
+    def shutdown(self):
+        if self.client:
+            self.client.close()
