@@ -3,7 +3,7 @@ from PyQt5.QtWidgets import QApplication, QTableWidgetItem, QLineEdit, QWidget, 
 
 from visualizer.gui_main_window import Ui_MainWindow
 from visualizer.modbus_worker import ModbusWorker
-from visualizer.constants import REGISTER_TYPE_TO_READ_FUNCTION_CODE, STRUCT_DATA_TYPE, ENDIANNESS, RADIX
+from visualizer.constants import REGISTER_TYPE_TO_READ_FUNCTION_CODE, STRUCT_DATA_TYPE, ENDIANNESS, RADIX, RADIX_PREFIX
 from visualizer.utils import format_data, serial_ports
 
 
@@ -12,6 +12,7 @@ class VisualizerApp(Ui_MainWindow, QObject):
     modbus_settings_changed = pyqtSignal(dict)
     polling_settings_available = pyqtSignal(int, int, str)
     poll_request = pyqtSignal()
+    write_request = pyqtSignal()
 
     def __init__(self, main_window):
         super().__init__()
@@ -86,7 +87,7 @@ class VisualizerApp(Ui_MainWindow, QObject):
             for i in range(num_rows):
                 self.pollTable.setItem(i, j, QTableWidgetItem(""))
 
-        self.pollTable.itemChanged.connect(self.process_write_request)
+        self.pollTable.itemChanged.connect(self.on_poll_table_cell_change)
 
     def init_serial_com_port_combo_box(self):
         com_ports = serial_ports()
@@ -213,16 +214,34 @@ class VisualizerApp(Ui_MainWindow, QObject):
         self.write_console("Stopping...")
 
     @pyqtSlot(QTableWidgetItem)
-    def process_write_request(self, item):
-        try:
-            row = item.row()
-            col = item.column()
+    def on_poll_table_cell_change(self, item):
+        if self.registerTypeComboBox.currentText() in ("Discrete Inputs", "Input Registers"):
+            self.write_console("Register Type is Read Only.")
+            return
 
-            base = int(self.pollTable.horizontalHeaderItem(col).text())
-            register = base + row
-            self.write_console(f"Changed register {register}")
-        except Exception as e:
-            print(e)
+        row = item.row()
+        col = item.column()
+        txt = item.text()
+
+        base = int(self.pollTable.horizontalHeaderItem(col).text())
+        register = base + row
+
+        val = None
+        try:
+            if txt[:2] in RADIX_PREFIX:
+                val = int(txt, base=RADIX_PREFIX[txt[:2]])
+            else:
+                val = int(txt)
+
+        except ValueError:
+                self.write_console(f"Invalid Value: {txt}. Did not write register {register}.")
+
+        if val:
+            request = {"function_code":
+            }
+            self.worker.write_requests.put(request)
+
+        self.write_console(f"Changed register {register}, {val}")
 
     @pyqtSlot(str)
     def write_console(self, msg):
