@@ -86,7 +86,7 @@ class VisualizerApp(Ui_MainWindow, QObject):
             for i in range(num_rows):
                 self.pollTable.setItem(i, j, QTableWidgetItem(""))
 
-        self.pollTable.itemChanged.connect(lambda item=None: self.write_console(f"{item.row(), item.column()} CHANGED"))
+        self.pollTable.itemChanged.connect(self.process_write_request)
 
     def init_serial_com_port_combo_box(self):
         com_ports = serial_ports()
@@ -211,6 +211,18 @@ class VisualizerApp(Ui_MainWindow, QObject):
     def stop_polling(self):
         self.worker.stop_polling = True
         self.write_console("Stopping...")
+
+    @pyqtSlot(QTableWidgetItem)
+    def process_write_request(self, item):
+        try:
+            row = item.row()
+            col = item.column()
+
+            base = int(self.pollTable.horizontalHeaderItem(col).text())
+            register = base + row
+            self.write_console(f"Changed register {register}")
+        except Exception as e:
+            print(e)
 
     @pyqtSlot(str)
     def write_console(self, msg):
