@@ -14,6 +14,8 @@ REGISTER_TYPE_TO_READ_FUNCTION_CODE = {"Coils": 0x01,
                                        "Discrete Inputs": 0x02,
                                        "Input Registers": 0x04,
                                        "Holding Registers": 0x03}
+REGISTER_TYPE_TO_WRITE_FUNCTION_CODE = {"Coils": 0x15,
+                                       "Holding Registers": 0x16}
 
 STRUCT_DATA_TYPE = {"Unsigned Short": "H",
                     "Signed Short": "h",
@@ -30,3 +32,7 @@ RADIX = {"Decimal": 10,
          "Hexadecimal": 16,
          "Octal": 8,
          "Binary": 2}
+
+RADIX_PREFIX = {"0x": 16,
+                "0b": 2,
+                "0o": 8}
