@@ -86,6 +86,8 @@ class VisualizerApp(Ui_MainWindow, QObject):
             for i in range(num_rows):
                 self.pollTable.setItem(i, j, QTableWidgetItem(""))
 
+        self.pollTable.itemChanged.connect(lambda item=None: self.write_console(f"{item.row(), item.column()} CHANGED"))
+
     def init_serial_com_port_combo_box(self):
         com_ports = serial_ports()
         self.serialPortComboBox.insertItems(0, com_ports)
@@ -112,6 +114,8 @@ class VisualizerApp(Ui_MainWindow, QObject):
 
     @pyqtSlot(list)
     def write_poll_table(self, data):
+        self.pollTable.blockSignals(True)  # Don't trigger write request when written by application
+
         self.current_table_data = data
         self.clear_poll_table()
         num_rows = self.pollTable.rowCount()
@@ -132,6 +136,8 @@ class VisualizerApp(Ui_MainWindow, QObject):
             # self.pollTable.setItem(i % 10, cur_col, QTableWidgetItem(str(datum)))
             if (i + 1) % num_rows == 0:
                 cur_col += 1
+
+        self.pollTable.blockSignals(False)
 
     @pyqtSlot()
     def configure_modbus_client(self):
