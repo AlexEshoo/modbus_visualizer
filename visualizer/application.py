@@ -3,7 +3,8 @@ from PyQt5.QtWidgets import QApplication, QTableWidgetItem, QLineEdit, QWidget, 
 
 from visualizer.gui_main_window import Ui_MainWindow
 from visualizer.modbus_worker import ModbusWorker
-from visualizer.constants import REGISTER_TYPE_TO_READ_FUNCTION_CODE, STRUCT_DATA_TYPE, ENDIANNESS, RADIX, RADIX_PREFIX
+from visualizer.constants import REGISTER_TYPE_TO_READ_FUNCTION_CODE, STRUCT_DATA_TYPE, ENDIANNESS, RADIX, \
+    RADIX_PREFIX, REGISTER_TYPE_TO_WRITE_FUNCTION_CODE
 from visualizer.utils import format_data, serial_ports
 
 
@@ -237,7 +238,9 @@ class VisualizerApp(Ui_MainWindow, QObject):
                 self.write_console(f"Invalid Value: {txt}. Did not write register {register}.")
 
         if val:
-            request = {"function_code":
+            request = {"function_code": REGISTER_TYPE_TO_WRITE_FUNCTION_CODE[self.registerTypeComboBox.currentText()],
+                       "start_register": register,
+                       "values": [val]
             }
             self.worker.write_requests.put(request)
 

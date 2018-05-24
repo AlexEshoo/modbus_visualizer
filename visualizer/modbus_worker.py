@@ -33,6 +33,7 @@ class ModbusWorker(QObject):
         self.busy = False
 
         self.poll_requests = Queue(maxsize=1)  # queue for incoming poll requests. limit to one poll at a time.
+        self.write_requests = Queue()
         self.stop_polling = False  # Flag signal to stop polling.
 
     def is_busy(self):
@@ -121,6 +122,10 @@ class ModbusWorker(QObject):
                 retries += 1
 
             while time.time() - start < poll_interval:  # Elapsed Time < Interval
+                while not self.write_requests.empty():
+                    wq = self.write_requests.get()
+                    self.write_modbus_data(wq["function_code"], wq["start_register"], wq["values"])
+
                 if self.stop_polling:
                     break
 
@@ -165,6 +170,32 @@ class ModbusWorker(QObject):
                 data = rr.bits[:length]  # For Coil/Discrete Input Responses
 
         return data
+
+    def write_modbus_data(self, function_code, start_reg, values):
+        modbus_functions = {0x15: self.client.write_coils,
+                            0x16: self.client.write_registers}
+
+        try:
+            wr = modbus_functions[function_code](start_reg, values)
+
+        except ConnectionException:
+            self.console_message_available.emit("Connection Failed.")
+            return False
+
+        # This works for TCP Exceptions
+        if isinstance(wr, ExceptionResponse):
+            code = wr.exception_code
+            msg = MODBUS_EXCEPTION_CODES[code]
+            self.console_message_available.emit(f"Modbus Error Code {code}: {msg}")
+            return False
+
+        # This works for Serial Exceptions
+        elif isinstance(wr, ModbusException):
+            self.console_message_available.emit(f"{str(wr)}")
+            return False
+
+        return True
+
 
     def shutdown(self):
         if self.client:
