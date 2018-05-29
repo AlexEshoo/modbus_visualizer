@@ -36,3 +36,12 @@ RADIX = {"Decimal": 10,
 RADIX_PREFIX = {"0x": 16,
                 "0b": 2,
                 "0o": 8}
+
+TXT_BOOLS = {"true": True,
+             "false": False,
+             "high": True,
+             "low": False,
+             "on": True,
+             "off": False,
+             "1": True,
+             "0": False}

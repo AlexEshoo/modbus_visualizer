@@ -4,8 +4,8 @@ from PyQt5.QtWidgets import QApplication, QTableWidgetItem, QLineEdit, QWidget, 
 from visualizer.gui_main_window import Ui_MainWindow
 from visualizer.modbus_worker import ModbusWorker
 from visualizer.constants import REGISTER_TYPE_TO_READ_FUNCTION_CODE, STRUCT_DATA_TYPE, ENDIANNESS, RADIX, \
-    RADIX_PREFIX, REGISTER_TYPE_TO_WRITE_FUNCTION_CODE
-from visualizer.utils import format_data, serial_ports
+    RADIX_PREFIX, REGISTER_TYPE_TO_WRITE_FUNCTION_CODE, TXT_BOOLS
+from visualizer.utils import format_data, serial_ports, format_write_value
 
 
 class VisualizerApp(Ui_MainWindow, QObject):
@@ -214,37 +214,44 @@ class VisualizerApp(Ui_MainWindow, QObject):
         self.worker.stop_polling = True
         self.write_console("Stopping...")
 
+
     @pyqtSlot(QTableWidgetItem)
     def on_poll_table_cell_change(self, item):
-        if self.registerTypeComboBox.currentText() in ("Discrete Inputs", "Input Registers"):
+        reg_type = self.registerTypeComboBox.currentText()
+
+        if reg_type in ("Discrete Inputs", "Input Registers"):
             self.write_console("Register Type is Read Only.")
             return
 
+        txt = item.text()
         row = item.row()
         col = item.column()
-        txt = item.text()
 
         base = int(self.pollTable.horizontalHeaderItem(col).text())
         register = base + row
 
-        val = None
-        try:
-            if txt[:2] in RADIX_PREFIX:
-                val = int(txt, base=RADIX_PREFIX[txt[:2]])
-            else:
-                val = int(txt)
+        vals = None
 
-        except ValueError:
-                self.write_console(f"Invalid Value: {txt}. Did not write register {register}.")
+        if reg_type == "Coils":
+            vals = TXT_BOOLS.get(txt, None)
 
-        if val:
-            request = {"function_code": REGISTER_TYPE_TO_WRITE_FUNCTION_CODE[self.registerTypeComboBox.currentText()],
-                       "start_register": register,
-                       "values": [val]
-            }
-            self.worker.write_requests.put(request)
+        elif reg_type == "Holding Registers":
+            dtype = STRUCT_DATA_TYPE[self.dataTypeComboBox.currentText()]
+            byte_order = ENDIANNESS[self.byteEndianessComboBox.currentText()]
+            word_order = ENDIANNESS[self.wordEndianessComboBox.currentText()]
+            vals = format_write_value(txt, dtype=dtype, byte_order=byte_order, word_order=word_order)
 
-        self.write_console(f"Changed register {register}, {val}")
+        if vals is None:
+            self.write_console(f"Invalid input for register type {reg_type}: {txt}")
+            return
+
+        request = {"function_code": REGISTER_TYPE_TO_WRITE_FUNCTION_CODE[self.registerTypeComboBox.currentText()],
+                   "start_register": register,
+                   "values": vals
+        }
+        self.worker.write_requests.put(request)
+        self.write_console(f"Changed register {register}, {vals}")
+
 
     @pyqtSlot(str)
     def write_console(self, msg):

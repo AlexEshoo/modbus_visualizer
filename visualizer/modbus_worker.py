@@ -177,6 +177,7 @@ class ModbusWorker(QObject):
 
         try:
             wr = modbus_functions[function_code](start_reg, values)
+            print(wr)
 
         except ConnectionException:
             self.console_message_available.emit("Connection Failed.")

@@ -4,6 +4,10 @@ import struct
 import sys
 from math import log, ceil
 
+from pymodbus.payload import BinaryPayloadBuilder
+
+from visualizer.constants import RADIX_PREFIX
+
 def digit_to_char(digit):
     if digit < 10:
         return str(digit)
@@ -80,6 +84,46 @@ def format_data(data, dtype:str, byte_order=">", word_order=">", base=10):
 
     return formatted
 
+def format_write_value(string, dtype='H', byte_order='>', word_order='>'):
+    builder = BinaryPayloadBuilder(byteorder=byte_order, wordorder=word_order)
+    builder_functions = {"H": builder.add_16bit_uint,
+                         "h": builder.add_16bit_int,
+                         "I": builder.add_32bit_uint,
+                         "i": builder.add_32bit_int,
+                         "f": builder.add_32bit_float}
+
+    num_txt = string[:]
+    sign = ''
+
+    if string[0] == '-':
+        sign = '-'
+        num_txt = string[1:]
+
+    radix = RADIX_PREFIX.get(num_txt[:2], 10)
+    if radix is not 10:
+        num_txt = string[2:]
+
+    vals = []
+    if dtype == 'f':
+        try:
+            val = float(sign + num_txt)
+        except ValueError:
+            return None
+    else:
+        try:
+            val = int(sign + num_txt, radix)
+        except ValueError:
+            return None
+
+    try:
+        builder_functions[dtype](val)
+    except struct.error:
+        return None
+
+    builder.build()
+    payload = builder.to_registers()
+
+    return payload
 
 def serial_ports():
     """
