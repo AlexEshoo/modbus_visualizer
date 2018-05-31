@@ -105,6 +105,8 @@ class VisualizerApp(Ui_MainWindow, QObject):
             self.pollTable.horizontalHeaderItem(i).setText(str(start + i * num_rows))
 
     def clear_poll_table(self, clear_data=False):
+        was_blocked = self.pollTable.blockSignals(True)
+
         num_rows = self.pollTable.rowCount()
         num_cols = self.pollTable.columnCount()
 
@@ -113,6 +115,9 @@ class VisualizerApp(Ui_MainWindow, QObject):
                 self.pollTable.item(i, j).setText("")
         if clear_data:
             self.current_table_data = []
+
+        if not was_blocked:
+            self.pollTable.blockSignals(False)
 
     @pyqtSlot(list)
     def write_poll_table(self, data):
@@ -233,7 +238,7 @@ class VisualizerApp(Ui_MainWindow, QObject):
         vals = None
 
         if reg_type == "Coils":
-            vals = TXT_BOOLS.get(txt, None)
+            vals = TXT_BOOLS.get(txt.lower(), None)
 
         elif reg_type == "Holding Registers":
             dtype = STRUCT_DATA_TYPE[self.dataTypeComboBox.currentText()]
@@ -250,7 +255,7 @@ class VisualizerApp(Ui_MainWindow, QObject):
                    "values": vals
         }
         self.worker.write_requests.put(request)
-        self.write_console(f"Changed register {register}, {vals}")
+        self.write_console(f"Write request added to queue Register: {register}, Value: {vals}")
 
 
     @pyqtSlot(str)

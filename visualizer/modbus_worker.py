@@ -195,8 +195,9 @@ class ModbusWorker(QObject):
             self.console_message_available.emit(f"{str(wr)}")
             return False
 
+        registers = [start_reg + i for i in range(len(values))]
+        self.console_message_available.emit(f"Wrote registers {registers}")
         return True
-
 
     def shutdown(self):
         if self.client:
