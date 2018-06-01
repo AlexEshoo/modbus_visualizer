@@ -175,7 +175,7 @@ class ModbusWorker(QObject):
         modbus_functions = {0x15: self.client.write_coils,
                             0x16: self.client.write_registers}
 
-        wr = modbus_functions[function_code](start_reg, ['lol'])
+        modbus_functions[function_code](start_reg, values)
 
         registers = [start_reg + i for i in range(len(values))]
         self.console_message_available.emit(f"Wrote registers {registers}")
