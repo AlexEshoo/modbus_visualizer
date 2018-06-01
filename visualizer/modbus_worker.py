@@ -186,6 +186,11 @@ class ModbusWorker(QObject):
             wq = self.write_requests.get()
             self.write_modbus_data(wq["function_code"], wq["start_register"], wq["values"])
 
+    def clear_write_queue(self):
+        self.console_message_available.emit("Clearing write queue...")
+        while not self.write_requests.empty():
+            self.write_requests.get()
+
     def shutdown(self):
         if self.client:
             self.client.close()

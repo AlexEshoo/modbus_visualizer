@@ -148,6 +148,8 @@ class VisualizerApp(Ui_MainWindow, QObject):
 
     @pyqtSlot()
     def configure_modbus_client(self):
+        self.worker.clear_write_queue()  # prevent writes to new server when reconfigured.
+
         if not self.worker.is_busy():
             tcp_mode = self.tcpRadioButton.isChecked()
             serial_mode = self.serialRadioButton.isChecked()
