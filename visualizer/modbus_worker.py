@@ -80,6 +80,8 @@ class ModbusWorker(QObject):
     def act_on_poll_request(self):
         self.polling_started.emit()
 
+        self.write_all_requests()  # Clear write Queue before reading.
+
         try:
             req = self.poll_requests.get(timeout=1)  # Get the request out of the queue.
         except Empty:
@@ -122,9 +124,7 @@ class ModbusWorker(QObject):
                 retries += 1
 
             while time.time() - start < poll_interval:  # Elapsed Time < Interval
-                while not self.write_requests.empty():
-                    wq = self.write_requests.get()
-                    self.write_modbus_data(wq["function_code"], wq["start_register"], wq["values"])
+                self.write_all_requests()  # Write any requests that came in while polling.
 
                 if self.stop_polling:
                     break
@@ -175,29 +175,16 @@ class ModbusWorker(QObject):
         modbus_functions = {0x15: self.client.write_coils,
                             0x16: self.client.write_registers}
 
-        try:
-            wr = modbus_functions[function_code](start_reg, values)
-            print(wr)
-
-        except ConnectionException:
-            self.console_message_available.emit("Connection Failed.")
-            return False
-
-        # This works for TCP Exceptions
-        if isinstance(wr, ExceptionResponse):
-            code = wr.exception_code
-            msg = MODBUS_EXCEPTION_CODES[code]
-            self.console_message_available.emit(f"Modbus Error Code {code}: {msg}")
-            return False
-
-        # This works for Serial Exceptions
-        elif isinstance(wr, ModbusException):
-            self.console_message_available.emit(f"{str(wr)}")
-            return False
+        wr = modbus_functions[function_code](start_reg, ['lol'])
 
         registers = [start_reg + i for i in range(len(values))]
         self.console_message_available.emit(f"Wrote registers {registers}")
         return True
+
+    def write_all_requests(self):
+        while not self.write_requests.empty():
+            wq = self.write_requests.get()
+            self.write_modbus_data(wq["function_code"], wq["start_register"], wq["values"])
 
     def shutdown(self):
         if self.client:
