@@ -9,7 +9,6 @@ from visualizer.utils import format_data, serial_ports, format_write_value
 
 
 class VisualizerApp(Ui_MainWindow, QObject):
-
     modbus_settings_changed = pyqtSignal(dict)
     polling_settings_available = pyqtSignal(int, int, str)
     poll_request = pyqtSignal()
@@ -136,7 +135,7 @@ class VisualizerApp(Ui_MainWindow, QObject):
         if self.registerTypeComboBox.currentText() in ("Holding Registers", "Input Registers"):
             formatted = format_data(data, dtype, byte_order=byte_order, word_order=word_order, base=base)
         else:
-            formatted = [ str(i) for i in data ]  # make bools into strings.
+            formatted = [str(i) for i in data]  # make bools into strings.
 
         for i, datum in enumerate(formatted):
             self.pollTable.item(i % 10, cur_col).setText(datum)
@@ -221,7 +220,6 @@ class VisualizerApp(Ui_MainWindow, QObject):
         self.worker.stop_polling = True
         self.write_console("Stopping...")
 
-
     @pyqtSlot(QTableWidgetItem)
     def on_poll_table_cell_change(self, item):
         reg_type = self.registerTypeComboBox.currentText()
@@ -255,18 +253,17 @@ class VisualizerApp(Ui_MainWindow, QObject):
         request = {"function_code": REGISTER_TYPE_TO_WRITE_FUNCTION_CODE[self.registerTypeComboBox.currentText()],
                    "start_register": register,
                    "values": vals
-        }
+                   }
         self.worker.write_requests.put(request)
         self.write_console(f"Write request added to queue Register: {register}, Value: {vals}")
 
-
     @pyqtSlot(str)
     def write_console(self, msg):
-        MAX_LINES = 500
+        _max_lines = 500
         current_text_lines = self.consoleTextEdit.toPlainText().split('\n')
         number_of_lines = len(current_text_lines)
 
-        if number_of_lines > MAX_LINES:
+        if number_of_lines > _max_lines:
             self.consoleTextEdit.setPlainText('\n'.join(current_text_lines[1:]))  # Rewrite all but the first line.
 
         # Using `insertPlainText` on `self.consoleTextEdit` uses a different cursor which starts at the end of it's
