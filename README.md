@@ -3,6 +3,7 @@
 ## Current Features
 * Modbus TCP support
 * Single and Continuous Polling of registers
+* Writing Registers
 * Data display settings including:
     * Data type
     * Radix
@@ -14,7 +15,6 @@
     * Binary
 
 ## Future Features
-* Writing Registers
 * Logging to File
 * Zero mode (1 or 0 index for registers)
 * Full register address display (show what the full register number is)
