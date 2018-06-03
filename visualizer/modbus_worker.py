@@ -25,6 +25,7 @@ class ModbusWorker(QObject):
     console_message_available = pyqtSignal(str)
     polling_started = pyqtSignal()
     polling_finished = pyqtSignal()
+    write_queue_empty = pyqtSignal()
 
     def __init__(self):
         super().__init__()
@@ -33,6 +34,7 @@ class ModbusWorker(QObject):
         self.busy = False
 
         self.poll_requests = Queue(maxsize=1)  # queue for incoming poll requests. limit to one poll at a time.
+        self.write_requests = Queue()
         self.stop_polling = False  # Flag signal to stop polling.
 
     def is_busy(self):
@@ -79,6 +81,8 @@ class ModbusWorker(QObject):
     def act_on_poll_request(self):
         self.polling_started.emit()
 
+        self.write_all_requests()  # Clear write Queue before reading.
+
         try:
             req = self.poll_requests.get(timeout=1)  # Get the request out of the queue.
         except Empty:
@@ -121,6 +125,8 @@ class ModbusWorker(QObject):
                 retries += 1
 
             while time.time() - start < poll_interval:  # Elapsed Time < Interval
+                self.write_all_requests()  # Write any requests that came in while polling.
+
                 if self.stop_polling:
                     break
 
@@ -165,6 +171,28 @@ class ModbusWorker(QObject):
                 data = rr.bits[:length]  # For Coil/Discrete Input Responses
 
         return data
+
+    def write_modbus_data(self, function_code, start_reg, values):
+        modbus_functions = {0x15: self.client.write_coils,
+                            0x16: self.client.write_registers}
+
+        modbus_functions[function_code](start_reg, values)
+
+        registers = [start_reg + i for i in range(len(values))]
+        self.console_message_available.emit(f"Wrote registers {registers}")
+        return True
+
+    def write_all_requests(self):
+        while not self.write_requests.empty():
+            wq = self.write_requests.get()
+            self.write_modbus_data(wq["function_code"], wq["start_register"], wq["values"])
+
+        self.write_queue_empty.emit()
+
+    def clear_write_queue(self):
+        self.console_message_available.emit("Clearing write queue...")
+        while not self.write_requests.empty():
+            self.write_requests.get()
 
     def shutdown(self):
         if self.client:

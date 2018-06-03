@@ -3,15 +3,16 @@ from PyQt5.QtWidgets import QApplication, QTableWidgetItem, QLineEdit, QWidget, 
 
 from visualizer.gui_main_window import Ui_MainWindow
 from visualizer.modbus_worker import ModbusWorker
-from visualizer.constants import REGISTER_TYPE_TO_READ_FUNCTION_CODE, STRUCT_DATA_TYPE, ENDIANNESS, RADIX
-from visualizer.utils import format_data, serial_ports
+from visualizer.constants import REGISTER_TYPE_TO_READ_FUNCTION_CODE, STRUCT_DATA_TYPE, ENDIANNESS, RADIX, \
+    RADIX_PREFIX, REGISTER_TYPE_TO_WRITE_FUNCTION_CODE, TXT_BOOLS
+from visualizer.utils import format_data, serial_ports, format_write_value
 
 
 class VisualizerApp(Ui_MainWindow, QObject):
-
     modbus_settings_changed = pyqtSignal(dict)
     polling_settings_available = pyqtSignal(int, int, str)
     poll_request = pyqtSignal()
+    write_requested = pyqtSignal()
 
     def __init__(self, main_window):
         super().__init__()
@@ -47,12 +48,17 @@ class VisualizerApp(Ui_MainWindow, QObject):
         self.worker.console_message_available.connect(self.write_console, Qt.QueuedConnection)
         self.worker.data_available.connect(self.write_poll_table)
         self.poll_request.connect(self.worker.act_on_poll_request, Qt.QueuedConnection)
+        self.write_requested.connect(lambda: self.writeAllPushButton.setEnabled(True))
+        self.worker.write_queue_empty.connect(lambda: self.writeAllPushButton.setDisabled(True))
+        self.writeAllPushButton.clicked.connect(self.write_all_button_pressed)
 
         # Disable buttons while polling, re-enable when polling complete
         for widget in self.pollingSettingsGroupBox.findChildren(QWidget):
             if widget.objectName() == "stopPollingPushButton":
                 self.worker.polling_started.connect(lambda w=widget: w.setEnabled(True), Qt.QueuedConnection)
                 self.worker.polling_finished.connect(lambda w=widget: w.setDisabled(True), Qt.QueuedConnection)
+            elif widget.objectName() == "writeAllPushButton":
+                pass  # Don't enable/disable the write all button based on polling state.
             else:
                 self.worker.polling_finished.connect(lambda w=widget: w.setEnabled(True), Qt.QueuedConnection)
                 self.worker.polling_started.connect(lambda w=widget: w.setDisabled(True), Qt.QueuedConnection)
@@ -86,6 +92,8 @@ class VisualizerApp(Ui_MainWindow, QObject):
             for i in range(num_rows):
                 self.pollTable.setItem(i, j, QTableWidgetItem(""))
 
+        self.pollTable.itemChanged.connect(self.on_poll_table_cell_change)
+
     def init_serial_com_port_combo_box(self):
         com_ports = serial_ports()
         self.serialPortComboBox.insertItems(0, com_ports)
@@ -101,6 +109,8 @@ class VisualizerApp(Ui_MainWindow, QObject):
             self.pollTable.horizontalHeaderItem(i).setText(str(start + i * num_rows))
 
     def clear_poll_table(self, clear_data=False):
+        was_blocked = self.pollTable.blockSignals(True)
+
         num_rows = self.pollTable.rowCount()
         num_cols = self.pollTable.columnCount()
 
@@ -110,8 +120,13 @@ class VisualizerApp(Ui_MainWindow, QObject):
         if clear_data:
             self.current_table_data = []
 
+        if not was_blocked:
+            self.pollTable.blockSignals(False)
+
     @pyqtSlot(list)
     def write_poll_table(self, data):
+        self.pollTable.blockSignals(True)  # Don't trigger write request when written by application
+
         self.current_table_data = data
         self.clear_poll_table()
         num_rows = self.pollTable.rowCount()
@@ -125,7 +140,7 @@ class VisualizerApp(Ui_MainWindow, QObject):
         if self.registerTypeComboBox.currentText() in ("Holding Registers", "Input Registers"):
             formatted = format_data(data, dtype, byte_order=byte_order, word_order=word_order, base=base)
         else:
-            formatted = [ str(i) for i in data ]  # make bools into strings.
+            formatted = [str(i) for i in data]  # make bools into strings.
 
         for i, datum in enumerate(formatted):
             self.pollTable.item(i % 10, cur_col).setText(datum)
@@ -133,8 +148,12 @@ class VisualizerApp(Ui_MainWindow, QObject):
             if (i + 1) % num_rows == 0:
                 cur_col += 1
 
+        self.pollTable.blockSignals(False)
+
     @pyqtSlot()
     def configure_modbus_client(self):
+        self.worker.clear_write_queue()  # prevent writes to new server when reconfigured.
+
         if not self.worker.is_busy():
             tcp_mode = self.tcpRadioButton.isChecked()
             serial_mode = self.serialRadioButton.isChecked()
@@ -206,13 +225,54 @@ class VisualizerApp(Ui_MainWindow, QObject):
         self.worker.stop_polling = True
         self.write_console("Stopping...")
 
+    @pyqtSlot(QTableWidgetItem)
+    def on_poll_table_cell_change(self, item):
+        reg_type = self.registerTypeComboBox.currentText()
+
+        if reg_type in ("Discrete Inputs", "Input Registers"):
+            self.write_console("Register Type is Read Only.")
+            return
+
+        txt = item.text()
+        row = item.row()
+        col = item.column()
+
+        base = int(self.pollTable.horizontalHeaderItem(col).text())
+        register = base + row
+
+        vals = None
+
+        if reg_type == "Coils":
+            vals = TXT_BOOLS.get(txt.lower(), None)
+
+        elif reg_type == "Holding Registers":
+            dtype = STRUCT_DATA_TYPE[self.dataTypeComboBox.currentText()]
+            byte_order = ENDIANNESS[self.byteEndianessComboBox.currentText()]
+            word_order = ENDIANNESS[self.wordEndianessComboBox.currentText()]
+            vals = format_write_value(txt, dtype=dtype, byte_order=byte_order, word_order=word_order)
+
+        if vals is None:
+            self.write_console(f"Invalid input for register type {reg_type}: {txt}")
+            return
+
+        request = {"function_code": REGISTER_TYPE_TO_WRITE_FUNCTION_CODE[self.registerTypeComboBox.currentText()],
+                   "start_register": register,
+                   "values": vals
+                   }
+        self.worker.write_requests.put(request)
+        self.write_requested.emit()
+        self.write_console(f"Write request added to queue Register: {register}, Value: {vals}")
+
+    def write_all_button_pressed(self):
+        self.worker.write_all_requests()
+
     @pyqtSlot(str)
     def write_console(self, msg):
-        MAX_LINES = 500
+        _max_lines = 500
         current_text_lines = self.consoleTextEdit.toPlainText().split('\n')
         number_of_lines = len(current_text_lines)
 
-        if number_of_lines > MAX_LINES:
+        if number_of_lines > _max_lines:
             self.consoleTextEdit.setPlainText('\n'.join(current_text_lines[1:]))  # Rewrite all but the first line.
 
         # Using `insertPlainText` on `self.consoleTextEdit` uses a different cursor which starts at the end of it's
