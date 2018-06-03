@@ -25,6 +25,7 @@ class ModbusWorker(QObject):
     console_message_available = pyqtSignal(str)
     polling_started = pyqtSignal()
     polling_finished = pyqtSignal()
+    write_queue_empty = pyqtSignal()
 
     def __init__(self):
         super().__init__()
@@ -185,6 +186,8 @@ class ModbusWorker(QObject):
         while not self.write_requests.empty():
             wq = self.write_requests.get()
             self.write_modbus_data(wq["function_code"], wq["start_register"], wq["values"])
+
+        self.write_queue_empty.emit()
 
     def clear_write_queue(self):
         self.console_message_available.emit("Clearing write queue...")

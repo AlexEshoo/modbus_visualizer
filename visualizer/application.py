@@ -12,7 +12,7 @@ class VisualizerApp(Ui_MainWindow, QObject):
     modbus_settings_changed = pyqtSignal(dict)
     polling_settings_available = pyqtSignal(int, int, str)
     poll_request = pyqtSignal()
-    write_request = pyqtSignal()
+    write_requested = pyqtSignal()
 
     def __init__(self, main_window):
         super().__init__()
@@ -48,12 +48,17 @@ class VisualizerApp(Ui_MainWindow, QObject):
         self.worker.console_message_available.connect(self.write_console, Qt.QueuedConnection)
         self.worker.data_available.connect(self.write_poll_table)
         self.poll_request.connect(self.worker.act_on_poll_request, Qt.QueuedConnection)
+        self.write_requested.connect(lambda: self.writeAllPushButton.setEnabled(True))
+        self.worker.write_queue_empty.connect(lambda: self.writeAllPushButton.setDisabled(True))
+        self.writeAllPushButton.clicked.connect(self.write_all_button_pressed)
 
         # Disable buttons while polling, re-enable when polling complete
         for widget in self.pollingSettingsGroupBox.findChildren(QWidget):
             if widget.objectName() == "stopPollingPushButton":
                 self.worker.polling_started.connect(lambda w=widget: w.setEnabled(True), Qt.QueuedConnection)
                 self.worker.polling_finished.connect(lambda w=widget: w.setDisabled(True), Qt.QueuedConnection)
+            elif widget.objectName() == "writeAllPushButton":
+                pass  # Don't enable/disable the write all button based on polling state.
             else:
                 self.worker.polling_finished.connect(lambda w=widget: w.setEnabled(True), Qt.QueuedConnection)
                 self.worker.polling_started.connect(lambda w=widget: w.setDisabled(True), Qt.QueuedConnection)
@@ -255,7 +260,11 @@ class VisualizerApp(Ui_MainWindow, QObject):
                    "values": vals
                    }
         self.worker.write_requests.put(request)
+        self.write_requested.emit()
         self.write_console(f"Write request added to queue Register: {register}, Value: {vals}")
+
+    def write_all_button_pressed(self):
+        self.worker.write_all_requests()
 
     @pyqtSlot(str)
     def write_console(self, msg):
