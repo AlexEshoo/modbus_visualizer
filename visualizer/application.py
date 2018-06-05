@@ -59,6 +59,10 @@ class VisualizerApp(Ui_MainWindow, QObject):
                 self.worker.polling_finished.connect(lambda w=widget: w.setDisabled(True), Qt.QueuedConnection)
             elif widget.objectName() == "writeAllPushButton":
                 pass  # Don't enable/disable the write all button based on polling state.
+            elif widget.objectName() == "unitIDSpinBox":
+                self.worker.polling_finished.connect(lambda w=widget: w.setEnabled(True) if \
+                    self.tcpRadioButton.isChecked() else ..., Qt.QueuedConnection)
+                self.worker.polling_started.connect(lambda w=widget: w.setDisabled(True), Qt.QueuedConnection)
             else:
                 self.worker.polling_finished.connect(lambda w=widget: w.setEnabled(True), Qt.QueuedConnection)
                 self.worker.polling_started.connect(lambda w=widget: w.setDisabled(True), Qt.QueuedConnection)
@@ -194,7 +198,8 @@ class VisualizerApp(Ui_MainWindow, QObject):
         request = {
             "function_code": function_code,
             "start_register": self.startRegisterSpinBox.value(),
-            "length": self.numberOfRegistersSpinBox.value()
+            "length": self.numberOfRegistersSpinBox.value(),
+            "unit_id": self.unitIDSpinBox.value()
         }
 
         self.worker.poll_requests.put(request)
@@ -215,7 +220,8 @@ class VisualizerApp(Ui_MainWindow, QObject):
             "start_register": self.startRegisterSpinBox.value(),
             "length": self.numberOfRegistersSpinBox.value(),
             "duration": 9999999999999,  # TODO: Make this a real parameter.
-            "interval": self.updateTimeSpinBox.value()
+            "interval": self.updateTimeSpinBox.value(),
+            "unit_id": self.unitIDSpinBox.value()
         }
 
         self.worker.poll_requests.put(request)
