@@ -129,7 +129,7 @@ class Ui_MainWindow(object):
         self.numberOfRegistersLabel.setObjectName("numberOfRegistersLabel")
         self.gridLayout_4.addWidget(self.numberOfRegistersLabel, 0, 4, 1, 1)
         self.unitIDSpinBox = QtWidgets.QSpinBox(self.pollingSettingsGroupBox)
-        self.unitIDSpinBox.setMinimum(1)
+        self.unitIDSpinBox.setMinimum(0)
         self.unitIDSpinBox.setMaximum(255)
         self.unitIDSpinBox.setProperty("value", 255)
         self.unitIDSpinBox.setObjectName("unitIDSpinBox")
