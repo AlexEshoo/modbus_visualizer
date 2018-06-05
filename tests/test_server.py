@@ -50,7 +50,7 @@ store = ModbusSlaveContext(
     co=ModbusSequentialDataBlock(0, [False] * 1000),
     hr=ModbusSequentialDataBlock(0, [0]*1000),
     ir=ModbusSequentialDataBlock(0, [0]*1000))
-if args.unit_id:
+if args.unit_id and args.server_type == "tcp":
     slaves_dict = {args.unit_id: store}
     context = ModbusServerContext(slaves=slaves_dict, single=False)
 else:
