@@ -59,6 +59,10 @@ class VisualizerApp(Ui_MainWindow, QObject):
                 self.worker.polling_finished.connect(lambda w=widget: w.setDisabled(True), Qt.QueuedConnection)
             elif widget.objectName() == "writeAllPushButton":
                 pass  # Don't enable/disable the write all button based on polling state.
+            elif widget.objectName() == "unitIDSpinBox":
+                self.worker.polling_finished.connect(lambda w=widget: w.setEnabled(True) if \
+                    self.tcpRadioButton.isChecked() else ..., Qt.QueuedConnection)
+                self.worker.polling_started.connect(lambda w=widget: w.setDisabled(True), Qt.QueuedConnection)
             else:
                 self.worker.polling_finished.connect(lambda w=widget: w.setEnabled(True), Qt.QueuedConnection)
                 self.worker.polling_started.connect(lambda w=widget: w.setDisabled(True), Qt.QueuedConnection)

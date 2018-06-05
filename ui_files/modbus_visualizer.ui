@@ -70,42 +70,6 @@
             </property>
            </widget>
           </item>
-          <item row="2" column="4">
-           <widget class="QPushButton" name="stopPollingPushButton">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-            <property name="text">
-             <string>Stop Polling</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="2">
-           <widget class="QLabel" name="startRegisterLabel">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="text">
-             <string>Start Register</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="4">
-           <widget class="QLabel" name="numberOfRegistersLabel">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="text">
-             <string>Number of Registers</string>
-            </property>
-           </widget>
-          </item>
           <item row="2" column="2">
            <widget class="QPushButton" name="startPollingPushButton">
             <property name="text">
@@ -113,22 +77,13 @@
             </property>
            </widget>
           </item>
-          <item row="1" column="4">
-           <widget class="QSpinBox" name="numberOfRegistersSpinBox">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
+          <item row="2" column="4">
+           <widget class="QPushButton" name="stopPollingPushButton">
+            <property name="enabled">
+             <bool>false</bool>
             </property>
-            <property name="toolTip">
-             <string/>
-            </property>
-            <property name="minimum">
-             <number>1</number>
-            </property>
-            <property name="maximum">
-             <number>100</number>
+            <property name="text">
+             <string>Stop Polling</string>
             </property>
            </widget>
           </item>
@@ -145,6 +100,19 @@
             </property>
             <property name="value">
              <number>0</number>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="2">
+           <widget class="QLabel" name="startRegisterLabel">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>Start Register</string>
             </property>
            </widget>
           </item>
@@ -198,6 +166,25 @@
             </property>
            </widget>
           </item>
+          <item row="1" column="4">
+           <widget class="QSpinBox" name="numberOfRegistersSpinBox">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="toolTip">
+             <string/>
+            </property>
+            <property name="minimum">
+             <number>1</number>
+            </property>
+            <property name="maximum">
+             <number>100</number>
+            </property>
+           </widget>
+          </item>
           <item row="0" column="0">
            <widget class="QLabel" name="registerTypeLabel">
             <property name="sizePolicy">
@@ -211,6 +198,32 @@
             </property>
            </widget>
           </item>
+          <item row="0" column="4">
+           <widget class="QLabel" name="numberOfRegistersLabel">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>Number of Registers</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="7">
+           <widget class="QSpinBox" name="unitIDSpinBox">
+            <property name="minimum">
+             <number>1</number>
+            </property>
+            <property name="maximum">
+             <number>255</number>
+            </property>
+            <property name="value">
+             <number>255</number>
+            </property>
+           </widget>
+          </item>
           <item row="2" column="6">
            <widget class="QPushButton" name="writeAllPushButton">
             <property name="enabled">
@@ -218,6 +231,19 @@
             </property>
             <property name="text">
              <string>Write all Requests</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="7">
+           <widget class="QLabel" name="unitIDLabel">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>Unit ID</string>
             </property>
            </widget>
           </item>
@@ -1006,8 +1032,8 @@
    <slot>setDisabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>105</x>
-     <y>71</y>
+     <x>134</x>
+     <y>180</y>
     </hint>
     <hint type="destinationlabel">
      <x>292</x>
@@ -1022,12 +1048,12 @@
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>105</x>
-     <y>71</y>
+     <x>134</x>
+     <y>180</y>
     </hint>
     <hint type="destinationlabel">
-     <x>105</x>
-     <y>121</y>
+     <x>134</x>
+     <y>258</y>
     </hint>
    </hints>
   </connection>
@@ -1042,8 +1068,40 @@
      <y>71</y>
     </hint>
     <hint type="destinationlabel">
-     <x>105</x>
-     <y>121</y>
+     <x>134</x>
+     <y>258</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>tcpRadioButton</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>unitIDSpinBox</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>43</x>
+     <y>72</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>478</x>
+     <y>325</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>serialRadioButton</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>unitIDSpinBox</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>59</x>
+     <y>172</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>480</x>
+     <y>330</y>
     </hint>
    </hints>
   </connection>
