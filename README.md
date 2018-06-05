@@ -13,13 +13,13 @@
     * RTU
     * ASCII
     * Binary
+* Unit ID Selection (For Modbus TCP devices)
 
 ## Future Features
 * Logging to File
 * Zero mode (1 or 0 index for registers)
 * Full register address display (show what the full register number is)
 * Read Device information metadata
-* Unit ID Support
 * Settings save to and load from file.
 
 ## Developing
@@ -58,6 +58,7 @@ arguments.
 * `--stop-bits`: The number of stop bits for the serial server. Can be 1 or 2 (default = 1)
 * `--byte-size`: The byte length for the serial server. Can be 5,6,7, or 8. (default = 8)
 * `-b, --baud-rate`: The baud rate for the serial server. (default = 19200)
+* `-u, --unit-id`: The unit ID to use for the TCP server. (default = None (Broadcast Mode))
 
 To test a serial server without an actual modbus device, a virtual com port program can be used on 
 windows such as:
