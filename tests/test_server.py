@@ -22,6 +22,7 @@ parser.add_argument("-c", "--com-port", default=None, type=str)
 parser.add_argument("--stop-bits", default=1, choices=[1,2], type=int)
 parser.add_argument("--byte-size", default=8, choices=[5,6,7,8], type=int)
 parser.add_argument("-b", "--baud-rate", default=19200, type=int)
+parser.add_argument("-u", "--unit-id", default=None, type=int, choices=range(256))
 args = parser.parse_args()
 
 FRAMER = {"rtu": ModbusRtuFramer,
@@ -32,7 +33,7 @@ def register_updater(ctxt):
     increment = 0
 
     while True:
-        ctxt[0x00].setValues(0x03, 0x00, [increment])
+        ctxt[slave_id].setValues(0x03, 0x00, [increment])
 
         if increment == 65535:
             increment = 0
@@ -42,14 +43,18 @@ def register_updater(ctxt):
         time.sleep(1)
 
 
-slave_id = 0x00
+slave_id = args.unit_id
 
 store = ModbusSlaveContext(
     di=ModbusSequentialDataBlock(0, [17] * 1000),
     co=ModbusSequentialDataBlock(0, [False] * 1000),
     hr=ModbusSequentialDataBlock(0, [0]*1000),
     ir=ModbusSequentialDataBlock(0, [0]*1000))
-context = ModbusServerContext(slaves=store, single=True)
+if args.unit_id:
+    slaves_dict = {args.unit_id: store}
+    context = ModbusServerContext(slaves=slaves_dict, single=False)
+else:
+    context = ModbusServerContext(slaves=store, single=True)
 
 identity = ModbusDeviceIdentification()
 identity.VendorName = 'Pymodbus'

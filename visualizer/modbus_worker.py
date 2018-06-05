@@ -99,6 +99,7 @@ class ModbusWorker(QObject):
             length = req.get("length")
             poll_interval = req.get("interval", 0)
             poll_duration = req.get("duration", 0)
+            unit_id = req.get("unit_id", 255)
             # poll_sample_count = options.get("sample_count", None)  # TODO: Implement something like this.
         except KeyError:
             self.console_message_available.emit(f"Request badly formatted: {req}")
@@ -112,7 +113,7 @@ class ModbusWorker(QObject):
         while time.time() - timer <= poll_duration and not self.stop_polling:
             start = time.time()
 
-            data = self.get_modbus_data(function_code, start_register, length)
+            data = self.get_modbus_data(function_code, start_register, length, unit_id=unit_id)
             self.data_available.emit(data)
 
             if data:
@@ -136,14 +137,15 @@ class ModbusWorker(QObject):
         self.stop_polling = False
         self.console_message_available.emit("Polling Stopped.")
 
-    def get_modbus_data(self, function_code, start_reg, length):
+    def get_modbus_data(self, function_code, start_reg, length, unit_id=255):
+        print(unit_id)
         modbus_functions = {0x01: self.client.read_coils,
                             0x02: self.client.read_discrete_inputs,
                             0x04: self.client.read_input_registers,
                             0x03: self.client.read_holding_registers}
 
         try:
-            rr = modbus_functions[function_code](start_reg, length)
+            rr = modbus_functions[function_code](start_reg, length, unit=unit_id)
 
         except KeyError:
             self.console_message_available.emit(f"Function code not supported: {function_code}")
