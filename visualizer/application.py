@@ -45,6 +45,8 @@ class VisualizerApp(Ui_MainWindow, QObject):
         self.registerTypeComboBox.currentTextChanged.connect(lambda: self.clear_poll_table(clear_data=True))
 
         self.modbus_settings_changed.connect(self.worker.configure_client, Qt.QueuedConnection)
+        self.tcpRadioButton.toggled.connect(self.configure_modbus_client, Qt.QueuedConnection)
+
         self.worker.console_message_available.connect(self.write_console, Qt.QueuedConnection)
         self.worker.data_available.connect(self.write_poll_table)
         self.poll_request.connect(self.worker.act_on_poll_request, Qt.QueuedConnection)
