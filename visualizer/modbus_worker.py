@@ -109,8 +109,8 @@ class ModbusWorker(QObject):
         timer = time.time()
         successful = 1
         retries = 0
-        # TODO: This needs some review... Could have timing issues if poll_duration == 0 (default case)
-        while time.time() - timer <= poll_duration and not self.stop_polling:
+        poll_time_exceeded = False
+        while not poll_time_exceeded and not self.stop_polling:
             start = time.time()
 
             data = self.get_modbus_data(function_code, start_register, length, unit_id=unit_id)
@@ -132,6 +132,8 @@ class ModbusWorker(QObject):
                     break
 
                 time.sleep(0.01)  # Do we need this much accuracy on poll interval? Does it hurt?
+
+            poll_time_exceeded = time.time() - timer >= poll_duration
 
         self.polling_finished.emit()
         self.stop_polling = False
